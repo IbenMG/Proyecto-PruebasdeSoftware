@@ -30,7 +30,6 @@ El alcance inicial contempla:
 - Visualización del progreso de financiamiento.
 - Persistencia de datos.
 
-Las funcionalidades adicionales serán evaluadas e incorporadas progresivamente durante las siguientes entregas del proyecto.
 
 ## Tecnologías
 
@@ -68,10 +67,10 @@ flowchart TD
 
 | Integrante | Rol |
 |---|---|
-| Integrante 1 | Benjamín Araos |
-| Integrante 2 | Dan Gonzalez |
-| Integrante 3 | Jaime Donoso |
-| Integrante 4 | Iben Muñoz |
+| Benjamín Araos |  |
+| Dan Gonzalez |  |
+| Jaime Donoso |  |
+| Iben Muñoz | 202204674-0 |
 
 > Los roles y responsabilidades internas serán definidos por el equipo y podrán rotar durante el desarrollo del proyecto.
 
