@@ -67,7 +67,7 @@ flowchart TD
 
 | Integrante | Rol |
 |---|---|
-| Benjamín Araos |  |
+| Benjamín Araos | 202273637-2 |
 | Dan Gonzalez |  |
 | Jaime Donoso |  |
 | Iben Muñoz | 202204674-0 |
