@@ -68,8 +68,8 @@ flowchart TD
 | Integrante | Rol |
 |---|---|
 | Benjamín Araos |  |
-| Dan Gonzalez |  |
-| Jaime Donoso |  |
+| Dan Gonzalez | 202273543-0 |
+| Jaime Donoso | 202273645-3 |
 | Iben Muñoz | 202204674-0 |
 
 > Los roles y responsabilidades internas serán definidos por el equipo y podrán rotar durante el desarrollo del proyecto.
