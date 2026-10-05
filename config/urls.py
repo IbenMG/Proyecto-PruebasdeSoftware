@@ -16,7 +16,8 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import include, path
-from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
+from rest_framework_simplejwt.views import TokenRefreshView
+from api.views import RegistroView, LoginCorreoView
 
 from api.views import UsuarioCreateView, UsuarioListView, UsuarioRetrieveUpdateView, UsuarioDestroyView
 from api.views import CampaniaCreateView, CampaniaListView, CampaniaRetrieveUpdateView, CampaniaDestroyView
@@ -25,7 +26,8 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/', include('rest_framework.urls')),
 
-    path('api/token', TokenObtainPairView.as_view(), name='token_obtain_pair'),
+    path('api/token/', LoginCorreoView.as_view(), name='token_obtain_pair'),
+    path('api/token', LoginCorreoView.as_view(), name='token_obtain_pair_legacy'),
     path('api/token/refresh', TokenRefreshView.as_view(), name='token_refresh'),
 
     path('api/usuarios/create/', UsuarioCreateView.as_view(), name='usuario-create'),
@@ -36,5 +38,6 @@ urlpatterns = [
     path('api/campanias/create/', CampaniaCreateView.as_view(), name='campania-create'),
     path('api/campanias/', CampaniaListView.as_view(), name='campania-list'),
     path('api/campanias/<int:pk>/', CampaniaRetrieveUpdateView.as_view(), name='campania-detail'),
-    path('api/campanias/<int:pk>/delete/', CampaniaDestroyView.as_view(), name='campania-delete')
+    path('api/campanias/<int:pk>/delete/', CampaniaDestroyView.as_view(), name='campania-delete'),
+    path('api/registro/', RegistroView.as_view(), name='registro'),
 ]

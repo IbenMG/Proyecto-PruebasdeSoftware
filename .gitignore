@@ -1,1 +1,13 @@
 venv/
+# Archivos locales de desarrollo
+__pycache__/
+*.pyc
+.venv/
+node_modules/
+dist/
+.env
+
+# Reportes de Playwright
+playwright-report/
+test-results/
+blob-report/
