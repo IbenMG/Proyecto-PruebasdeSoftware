@@ -1,29 +1,58 @@
 import { useState } from 'react';
 import Login from './login.jsx';
+import Registro from './registro.jsx';
 
 function App() {
-  // Estado para saber si el usuario está autenticado
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [vista, setVista] = useState('login');
+  const [mensaje, setMensaje] = useState('');
+
+  if (vista === 'registro') {
+    return (
+      <Registro
+        onVolver={() => setVista('login')}
+        onRegistroSuccess={() => {
+          setMensaje('Cuenta creada correctamente. Ya puedes iniciar sesión.');
+          setVista('login');
+        }}
+      />
+    );
+  }
+
+  if (vista === 'principal') {
+    return (
+      <div
+        className="main-container"
+        style={{ padding: '2rem', textAlign: 'center' }}
+      >
+        <h1>¡Bienvenido al sistema principal!</h1>
+        <p>Has iniciado sesión exitosamente.</p>
+
+        <button
+          onClick={() => {
+            localStorage.removeItem('access_token');
+            localStorage.removeItem('refresh_token');
+            setMensaje('');
+            setVista('login');
+          }}
+        >
+          Cerrar sesión
+        </button>
+      </div>
+    );
+  }
 
   return (
-    <div>
-      {!isLoggedIn ? (
-        // Si no ha iniciado sesión, muestra el Login y le pasa una función para cambiar el estado
-        <Login onLoginSuccess={() => setIsLoggedIn(true)} />
-      ) : (
-        // Si ya inició sesión, muestra la vista principal (Main)
-        <div className="main-container" style={{ padding: '2rem', textAlign: 'center' }}>
-          <h1>¡Bienvenido al sistema principal!</h1>
-          <p>Has iniciado sesión exitosamente.</p>
-          <button 
-            onClick={() => setIsLoggedIn(false)}
-            style={{ padding: '0.5rem 1rem', marginTop: '1rem', cursor: 'pointer' }}
-          >
-            Cerrar Sesión
-          </button>
-        </div>
-      )}
-    </div>
+    <Login
+      mensaje={mensaje}
+      onLoginSuccess={() => {
+        setMensaje('');
+        setVista('principal');
+      }}
+      onRegistro={() => {
+        setMensaje('');
+        setVista('registro');
+      }}
+    />
   );
 }
 

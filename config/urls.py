@@ -17,6 +17,7 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import include, path
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
+from api.views import RegistroView
 
 from api.views import UsuarioCreateView, UsuarioListView, UsuarioRetrieveUpdateView, UsuarioDestroyView
 from api.views import CampaniaCreateView, CampaniaListView, CampaniaRetrieveUpdateView, CampaniaDestroyView
@@ -36,5 +37,6 @@ urlpatterns = [
     path('api/campanias/create/', CampaniaCreateView.as_view(), name='campania-create'),
     path('api/campanias/', CampaniaListView.as_view(), name='campania-list'),
     path('api/campanias/<int:pk>/', CampaniaRetrieveUpdateView.as_view(), name='campania-detail'),
-    path('api/campanias/<int:pk>/delete/', CampaniaDestroyView.as_view(), name='campania-delete')
+    path('api/campanias/<int:pk>/delete/', CampaniaDestroyView.as_view(), name='campania-delete'),
+    path('api/registro/', RegistroView.as_view(), name='registro'),
 ]

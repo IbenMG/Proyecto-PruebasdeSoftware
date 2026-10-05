@@ -1,4 +1,5 @@
 from django.db import models
+from django.conf import settings
 
 # Usuario model
 class Usuario(models.Model):
@@ -16,3 +17,15 @@ class Campania(models.Model):
     fecha_limite = models.DateField()
     informacion_creador = models.TextField()
     progeso_financiero = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+
+class PerfilUsuario(models.Model):
+    usuario = models.OneToOneField(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="perfil",
+    )
+    correo = models.EmailField(unique=True)
+    fecha_nacimiento = models.DateField()
+
+    def __str__(self):
+        return self.usuario.username

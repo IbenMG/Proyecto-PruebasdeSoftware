@@ -6,3 +6,8 @@ __pycache__/
 node_modules/
 dist/
 .env
+
+# Reportes de Playwright
+playwright-report/
+test-results/
+blob-report/

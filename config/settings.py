@@ -1,3 +1,4 @@
+import os
 """
 Django settings for config project.
 
@@ -81,7 +82,7 @@ WSGI_APPLICATION = 'config.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'postgres',
+        'NAME': os.environ.get('DB_NAME', 'postgres'),
         'USER': 'masteruser',
         'PASSWORD': '12345678',
         'HOST': '127.0.0.1',
@@ -144,3 +145,8 @@ REST_FRAMEWORK = {
         'rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly',
     ),
 }
+
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+]
