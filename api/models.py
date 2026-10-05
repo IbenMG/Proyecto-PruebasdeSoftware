@@ -12,7 +12,11 @@ class Campania(models.Model):
     titulo = models.CharField(max_length=100)
     descripcion = models.TextField()
     categoria = models.CharField(max_length=50)
-    imagenes = models.ImageField(upload_to='imagenes/')
+    imagenes = models.ImageField(upload_to='imagenes/', blank=True)
+    creador = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL,
+        null=True, blank=True, related_name='campanias',
+    )
     meta_financiera = models.DecimalField(max_digits=10, decimal_places=2)
     fecha_limite = models.DateField()
     informacion_creador = models.TextField()

@@ -11,3 +11,6 @@ dist/
 playwright-report/
 test-results/
 blob-report/
+
+# Imágenes subidas en el entorno local
+media/

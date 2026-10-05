@@ -1,105 +1,157 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import { api } from '../services/api.js';
 import './campaigns.css';
 
-const today = new Date().toISOString().split('T')[0];
+const campos = [
+  ['titulo', 'Título', 'text'],
+  ['descripcion', 'Descripción', 'textarea'],
+  ['categoria', 'Categoría', 'text'],
+  ['meta_financiera', 'Meta de financiamiento', 'number'],
+  ['fecha_limite', 'Fecha límite', 'date'],
+  ['informacion_creador', 'Información del creador', 'textarea'],
+];
+const valoresIniciales = Object.fromEntries(campos.map(([name]) => [name, '']));
+const hoyEnChile = () => new Intl.DateTimeFormat('sv-SE', {
+  timeZone: 'America/Santiago', year: 'numeric', month: '2-digit', day: '2-digit',
+}).format(new Date());
 
-export default function CreateCampaign() {
+export default function CreateCampaign({ editar = false }) {
+  const { id } = useParams();
   const navigate = useNavigate();
-  const [form, setForm] = useState({
-    titulo: '',
-    descripcion: '',
-    categoria: '',
-    meta_financiera: '',
-    fecha_limite: today,
-    informacion_creador: ''
-  });
+  const [form, setForm] = useState(valoresIniciales);
+  const [imagen, setImagen] = useState(null);
+  const [imagenActual, setImagenActual] = useState('');
+  const [quitarImagen, setQuitarImagen] = useState(false);
   const [errors, setErrors] = useState({});
   const [submitError, setSubmitError] = useState('');
+  const [enviando, setEnviando] = useState(false);
+  const [cargando, setCargando] = useState(editar);
+  const [permitido, setPermitido] = useState(!editar);
 
-  const validate = (name, value) => {
-    let err = '';
-    if (!value.trim()) err = 'Campo requerido';
-    else if (name === 'meta_financiera' && parseFloat(value) <= 0) err = 'Meta debe ser > 0';
-    else if (name === 'fecha_limite' && value < today) err = 'Fecha no puede ser anterior a hoy';
-    setErrors(prev => ({ ...prev, [name]: err }));
-    return !err;
-  };
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setForm(prev => ({ ...prev, [name]: value }));
-    if (errors[name]) validate(name, value);
-  };
-
-  const handleBlur = (e) => validate(e.target.name, e.target.value);
-
-  const isValid = () => {
-    let valid = true;
-    Object.keys(form).forEach(key => {
-      if (!validate(key, form[key])) valid = false;
+  useEffect(() => {
+    if (!editar) return;
+    let activo = true;
+    api.getCampaign(id).then(data => {
+      if (!activo) return;
+      if (!data.puede_editar) {
+        setSubmitError('Solo el creador puede editar esta campaña.');
+        return;
+      }
+      setPermitido(true);
+      setForm(Object.fromEntries(campos.map(([name]) => [name, String(data[name] ?? '')])));
+      setImagenActual(data.imagenes || '');
+    }).catch(() => {
+      if (activo) setSubmitError('No se pudo cargar la campaña.');
+    }).finally(() => {
+      if (activo) setCargando(false);
     });
-    return valid;
-  };
+    return () => { activo = false; };
+  }, [editar, id]);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setSubmitError('');
-    if (!isValid()) return;
-
-    try {
-      const data = {
-        ...form,
-        meta_financiera: parseFloat(form.meta_financiera),
-        imagenes: ''
-      };
-      const campaign = await api.createCampaign(data);
-      navigate(`/campaigns/${campaign.id}`);
-    } catch {
-      setSubmitError('Error al crear campaña');
+  function validar(name, value) {
+    if (!value.trim()) return 'Campo obligatorio.';
+    if (name === 'meta_financiera' && (!Number.isFinite(Number(value)) || Number(value) <= 0)) {
+      return 'La meta de financiamiento debe ser mayor que cero.';
     }
-  };
+    if (name === 'fecha_limite' && value < hoyEnChile()) {
+      return 'La fecha límite no puede ser anterior al día actual.';
+    }
+    return '';
+  }
 
-  const disabled = Object.values(errors).some(e => e) || Object.values(form).some(v => !v.trim());
+  function cambiar(event) {
+    const { name, value } = event.target;
+    setForm(previous => ({ ...previous, [name]: value }));
+    if (errors[name]) setErrors(previous => ({ ...previous, [name]: validar(name, value) }));
+  }
+
+  async function enviar(event) {
+    event.preventDefault();
+    const nuevosErrores = Object.fromEntries(campos.map(([name]) => [name, validar(name, form[name])]));
+    setErrors(nuevosErrores);
+    setSubmitError('');
+    if (Object.values(nuevosErrores).some(Boolean)) return;
+
+    const body = new FormData();
+    for (const [name, value] of Object.entries(form)) body.append(name, value.trim());
+    if (imagen) body.append('imagenes', imagen);
+    if (editar && quitarImagen) body.append('quitar_imagen', 'true');
+    setEnviando(true);
+    try {
+      const campaign = editar ? await api.updateCampaign(id, body) : await api.createCampaign(body);
+      navigate(`/campaigns/${campaign.id}`, {
+        state: { mensaje: editar ? 'Campaña actualizada exitosamente' : 'Campaña creada exitosamente' },
+      });
+    } catch (error) {
+      if (error.status === 400) {
+        const details = Object.fromEntries(Object.entries(error.details).map(
+          ([name, value]) => [name, Array.isArray(value) ? value.join(' ') : String(value)]
+        ));
+        setErrors(details);
+        setSubmitError(details.non_field_errors || 'Revisa los campos indicados.');
+      } else {
+        setSubmitError(error.status === 401 ? 'Tu sesión expiró. Vuelve a iniciar sesión.' : error.message);
+      }
+    } finally {
+      setEnviando(false);
+    }
+  }
+
+  if (cargando) return <p role="status">Cargando campaña...</p>;
 
   return (
-    <div className="create-campaign">
-      <h2>Crear Nueva Campaña</h2>
-      <form onSubmit={handleSubmit} noValidate>
-        <div className="field">
-          <label>Título *</label>
-          <input name="titulo" value={form.titulo} onChange={handleChange} onBlur={handleBlur} className={errors.titulo ? 'error' : ''} />
-          {errors.titulo && <span className="error">{errors.titulo}</span>}
-        </div>
-        <div className="field">
-          <label>Descripción *</label>
-          <textarea name="descripcion" value={form.descripcion} onChange={handleChange} onBlur={handleBlur} className={errors.descripcion ? 'error' : ''} rows="4" />
-          {errors.descripcion && <span className="error">{errors.descripcion}</span>}
-        </div>
-        <div className="field">
-          <label>Categoría *</label>
-          <input name="categoria" value={form.categoria} onChange={handleChange} onBlur={handleBlur} className={errors.categoria ? 'error' : ''} placeholder="Ej: Arte" />
-          {errors.categoria && <span className="error">{errors.categoria}</span>}
-        </div>
-        <div className="field">
-          <label>Meta de financiamiento *</label>
-          <input type="number" step="0.01" name="meta_financiera" value={form.meta_financiera} onChange={handleChange} onBlur={handleBlur} className={errors.meta_financiera ? 'error' : ''} min="0.01" />
-          {errors.meta_financiera && <span className="error">{errors.meta_financiera}</span>}
-        </div>
-        <div className="field">
-          <label>Fecha límite *</label>
-          <input type="date" name="fecha_limite" value={form.fecha_limite} onChange={handleChange} onBlur={handleBlur} className={errors.fecha_limite ? 'error' : ''} min={today} />
-          {errors.fecha_limite && <span className="error">{errors.fecha_limite}</span>}
-        </div>
-        <div className="field">
-          <label>Información del creador *</label>
-          <textarea name="informacion_creador" value={form.informacion_creador} onChange={handleChange} onBlur={handleBlur} className={errors.informacion_creador ? 'error' : ''} rows="3" placeholder="Tu información" />
-          {errors.informacion_creador && <span className="error">{errors.informacion_creador}</span>}
-        </div>
-        {submitError && <div className="submit-error">{submitError}</div>}
-        <button type="submit" className="btn-submit" disabled={disabled}>Publicar Campaña</button>
-      </form>
-    </div>
+    <main className="create-campaign">
+      <Link to="/main" className="back-link">Volver al panel principal</Link>
+      <h1>{editar ? 'Editar campaña' : 'Crear campaña'}</h1>
+      {submitError && <p role="alert" className="error-msg">{submitError}</p>}
+      {permitido && (
+        <form onSubmit={enviar} noValidate>
+          <p>Todos los campos son obligatorios, excepto la imagen.</p>
+          {campos.map(([name, label, type]) => {
+            const props = {
+              id: `campania-${name}`, name, value: form[name], onChange: cambiar,
+              onBlur: () => setErrors(previous => ({ ...previous, [name]: validar(name, form[name]) })),
+              required: true, disabled: enviando, 'aria-invalid': Boolean(errors[name]),
+              'aria-describedby': errors[name] ? `error-${name}` : undefined,
+            };
+            return (
+              <div className="field" key={name}>
+                <label htmlFor={props.id}>{label}</label>
+                {type === 'textarea' ? <textarea {...props} rows={4} /> : (
+                  <input {...props} type={type}
+                    step={type === 'number' ? '0.01' : undefined}
+                    min={type === 'number' ? '0.01' : type === 'date' ? hoyEnChile() : undefined}
+                    maxLength={name === 'titulo' ? 100 : name === 'categoria' ? 50 : undefined}
+                  />
+                )}
+                {errors[name] && <p id={`error-${name}`} className="error-msg" role="alert">{errors[name]}</p>}
+              </div>
+            );
+          })}
+          <div className="field">
+            <label htmlFor="campania-imagen">Imagen (opcional)</label>
+            <input id="campania-imagen" type="file" accept="image/*" disabled={enviando}
+              aria-invalid={Boolean(errors.imagenes)}
+              onChange={event => {
+                setImagen(event.target.files[0] || null);
+                setQuitarImagen(false);
+                setErrors(previous => ({ ...previous, imagenes: '' }));
+              }} />
+            {errors.imagenes && <p className="error-msg" role="alert">{errors.imagenes}</p>}
+            {editar && imagenActual && !imagen && (
+              <>
+                <img src={imagenActual} alt="Imagen actual de la campaña" className="campaign-image" />
+                <label><input type="checkbox" checked={quitarImagen} disabled={enviando}
+                  onChange={event => setQuitarImagen(event.target.checked)} /> Quitar imagen actual</label>
+              </>
+            )}
+          </div>
+          <button type="submit" className="btn-submit" disabled={enviando}>
+            {enviando ? 'Guardando...' : editar ? 'Guardar cambios' : 'Publicar campaña'}
+          </button>
+        </form>
+      )}
+    </main>
   );
 }

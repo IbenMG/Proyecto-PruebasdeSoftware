@@ -15,9 +15,11 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
+from django.conf import settings
+from django.conf.urls.static import static
 from django.urls import include, path
 from rest_framework_simplejwt.views import TokenRefreshView
-from api.views import RegistroView, LoginCorreoView
+from api.views import RegistroView, LoginCorreoView, MisCampaniasView
 
 from api.views import UsuarioCreateView, UsuarioListView, UsuarioRetrieveUpdateView, UsuarioDestroyView
 from api.views import CampaniaCreateView, CampaniaListView, CampaniaRetrieveUpdateView, CampaniaDestroyView
@@ -36,8 +38,13 @@ urlpatterns = [
     path('api/usuarios/<int:pk>/delete/', UsuarioDestroyView.as_view(), name='usuario-delete'),
 
     path('api/campanias/create/', CampaniaCreateView.as_view(), name='campania-create'),
+    path('api/campanias/mis/', MisCampaniasView.as_view(), name='mis-campanias'),
     path('api/campanias/', CampaniaListView.as_view(), name='campania-list'),
     path('api/campanias/<int:pk>/', CampaniaRetrieveUpdateView.as_view(), name='campania-detail'),
     path('api/campanias/<int:pk>/delete/', CampaniaDestroyView.as_view(), name='campania-delete'),
     path('api/registro/', RegistroView.as_view(), name='registro'),
 ]
+
+
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
