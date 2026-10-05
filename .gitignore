@@ -1,1 +1,8 @@
 venv/
+# Archivos locales de desarrollo
+__pycache__/
+*.pyc
+.venv/
+node_modules/
+dist/
+.env
