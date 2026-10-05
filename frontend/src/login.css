@@ -68,3 +68,23 @@
     .btn-submit:hover {
     background-color: #44b82f;
     }
+
+    .btn-submit:disabled {
+    background-color: #94a3b8;
+    cursor: not-allowed;
+    }
+    .btn-submit:disabled:hover {
+    background-color: #94a3b8;
+    }
+
+    .input-group input.error {
+    border-color: #ef4444;
+    box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.15);
+    }
+
+    .error-message {
+    color: #ef4444;
+    font-size: 0.75rem;
+    margin-top: 0.25rem;
+    display: block;
+    }
