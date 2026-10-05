@@ -2,7 +2,7 @@ import { useState } from 'react';
 import './login.css';
 
 export default function Login({ onLoginSuccess, onRegistro, mensaje }) {
-  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [enviando, setEnviando] = useState(false);
@@ -10,13 +10,17 @@ export default function Login({ onLoginSuccess, onRegistro, mensaje }) {
   async function handleSubmit(event) {
     event.preventDefault();
     setError('');
+    if (!password.trim()) {
+      setError('Contraseña requerida');
+      return;
+    }
     setEnviando(true);
 
     try {
-      const response = await fetch('http://localhost:8000/api/token', {
+      const response = await fetch('http://localhost:8000/api/token/', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password }),
+        body: JSON.stringify({ email, password }),
       });
 
       const data = await response.json();
@@ -24,7 +28,7 @@ export default function Login({ onLoginSuccess, onRegistro, mensaje }) {
       if (!response.ok) {
         setError(
           response.status === 401
-            ? 'Usuario o contraseña incorrectos.'
+            ? 'Correo o contraseña incorrectos'
             : 'No se pudo iniciar sesión.'
         );
         return;
@@ -54,13 +58,13 @@ export default function Login({ onLoginSuccess, onRegistro, mensaje }) {
 
         <form onSubmit={handleSubmit}>
           <div className="input-group">
-            <label htmlFor="login-username">Usuario</label>
+            <label htmlFor="login-email">Correo electrónico</label>
             <input
-              id="login-username"
-              type="text"
-              autoComplete="username"
-              value={username}
-              onChange={(event) => setUsername(event.target.value)}
+              id="login-email"
+              type="email"
+              autoComplete="email"
+              value={email}
+              onChange={(event) => setEmail(event.target.value)}
               required
               disabled={enviando}
             />
@@ -82,7 +86,7 @@ export default function Login({ onLoginSuccess, onRegistro, mensaje }) {
           {error && <p role="alert">{error}</p>}
 
           <button className="btn-submit" type="submit" disabled={enviando}>
-            {enviando ? 'Ingresando…' : 'Entrar'}
+            {enviando ? 'Ingresando…' : 'Iniciar Sesión'}
           </button>
         </form>
 

@@ -1,0 +1,18 @@
+.create-campaign, .my-campaigns, .search-campaigns, .campaign-detail {
+  max-width: 900px;
+  margin: 2rem auto;
+  padding: 1.5rem;
+}
+.field, .search-box { margin: 1rem 0; }
+.field label { display: block; margin-bottom: .5rem; }
+.field input, .field textarea, .search-box input {
+  width: 100%; padding: .75rem; border: 1px solid #cbd5e1; border-radius: 8px;
+}
+.error, .error-msg, .submit-error, .detail-error { color: #b91c1c; }
+.campaigns-grid { display: grid; gap: 1rem; }
+.campaign-card, .detail-card { display: block; border: 1px solid #cbd5e1; padding: 1.25rem; border-radius: 8px; }
+.progress, .progress-bar-wrap { height: 10px; background: #e2e8f0; border-radius: 5px; margin: .75rem 0; overflow: hidden; }
+.progress-bar, .progress-bar-fill { height: 100%; background: #44b82f; }
+.section { margin-top: 1.5rem; }
+.progress-header { display: flex; justify-content: space-between; gap: 1rem; }
+.back-link, .btn-create { display: inline-block; margin: 1rem 0; text-decoration: underline; }

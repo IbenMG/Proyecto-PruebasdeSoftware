@@ -125,17 +125,17 @@ test('registro, duplicados e inicio de sesión', async ({ page }) => {
   await page.getByRole('button', { name: 'Ya tengo una cuenta' }).click();
 
   // La contraseña incorrecta debe impedir el acceso.
-  await page.getByLabel('Usuario', { exact: true }).fill(datos.username);
+  await page.getByLabel('Correo electrónico', { exact: true }).fill(datos.email);
   await page.getByLabel('Contraseña', { exact: true }).fill('ClaveIncorrecta');
-  await page.getByRole('button', { name: 'Entrar', exact: true }).click();
+  await page.getByRole('button', { name: 'Iniciar Sesión', exact: true }).click();
 
   await expect(page.getByRole('alert')).toHaveText(
-    'Usuario o contraseña incorrectos.'
+    'Correo o contraseña incorrectos'
   );
 
   // La contraseña correcta debe permitirlo.
   await page.getByLabel('Contraseña', { exact: true }).fill(datos.password);
-  await page.getByRole('button', { name: 'Entrar', exact: true }).click();
+  await page.getByRole('button', { name: 'Iniciar Sesión', exact: true }).click();
 
   await expect(
     page.getByRole('heading', { name: '¡Bienvenido al sistema principal!' })

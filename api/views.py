@@ -1,3 +1,5 @@
+from rest_framework_simplejwt.views import TokenViewBase
+from .serializers import LoginCorreoSerializer
 from rest_framework import generics
 from .models import Usuario, Campania
 from .serializers import UsuarioSerializer, CampaniaSerializer
@@ -78,3 +80,8 @@ class RegistroView(generics.GenericAPIView):
             },
             status=status.HTTP_201_CREATED,
         )
+
+
+
+class LoginCorreoView(TokenViewBase):
+    serializer_class = LoginCorreoSerializer

@@ -1,6 +1,8 @@
 from rest_framework import serializers
+from rest_framework.exceptions import AuthenticationFailed
+from rest_framework_simplejwt.tokens import RefreshToken
 from .models import Usuario, Campania
-from django.contrib.auth import get_user_model
+from django.contrib.auth import authenticate, get_user_model
 from django.contrib.auth.validators import UnicodeUsernameValidator
 from django.db import IntegrityError, transaction
 from django.utils import timezone
@@ -95,3 +97,23 @@ class RegistroSerializer(serializers.Serializer):
             )
 
         return usuario
+
+class LoginCorreoSerializer(serializers.Serializer):
+    email = serializers.EmailField(max_length=254)
+    password = serializers.CharField(write_only=True, trim_whitespace=False)
+
+    def validate(self, attrs):
+        User = get_user_model()
+        candidatos = list(User.objects.filter(email__iexact=attrs["email"])[:2])
+        usuario = None
+        if len(candidatos) == 1:
+            usuario = authenticate(
+                request=self.context.get("request"),
+                username=candidatos[0].username,
+                password=attrs["password"],
+            )
+        if usuario is None or not usuario.is_active:
+            raise AuthenticationFailed("Correo o contraseña incorrectos")
+
+        refresh = RefreshToken.for_user(usuario)
+        return {"refresh": str(refresh), "access": str(refresh.access_token)}
