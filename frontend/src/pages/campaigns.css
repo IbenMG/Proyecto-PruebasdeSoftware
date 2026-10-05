@@ -16,3 +16,9 @@
 .section { margin-top: 1.5rem; }
 .progress-header { display: flex; justify-content: space-between; gap: 1rem; }
 .back-link, .btn-create { display: inline-block; margin: 1rem 0; text-decoration: underline; }
+
+.create-campaign h1, .my-campaigns h1, .campaign-detail h1 { font-size: 1.8rem; font-weight: 600; margin-bottom: 1rem; }
+.field [aria-invalid="true"] { border-color: #b91c1c; box-shadow: 0 0 0 1px #b91c1c; }
+.field input[type="checkbox"] { width: auto; margin-right: .5rem; }
+.campaign-image { max-width: 100%; max-height: 360px; object-fit: contain; margin: 1rem 0; }
+.success-message { padding: 1rem; background: #dcfce7; color: #14532d; border-radius: 8px; margin: 1rem 0; }

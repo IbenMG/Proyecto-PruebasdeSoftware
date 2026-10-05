@@ -4,7 +4,7 @@ from rest_framework import generics
 from .models import Usuario, Campania
 from .serializers import UsuarioSerializer, CampaniaSerializer
 from rest_framework import status
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny, IsAuthenticated, BasePermission, SAFE_METHODS
 from rest_framework.response import Response
 
 from .serializers import RegistroSerializer
@@ -38,25 +38,47 @@ class UsuarioDestroyView(generics.DestroyAPIView):
 #    CRUD de Campaña
 # =======================
 
-# Crear campaña
+class EsCreadorOConsulta(BasePermission):
+    def has_permission(self, request, view):
+        return request.method in SAFE_METHODS or request.user.is_authenticated
+
+    def has_object_permission(self, request, view, obj):
+        return request.method in SAFE_METHODS or obj.creador_id == request.user.pk
+
+
 class CampaniaCreateView(generics.CreateAPIView):
     queryset = Campania.objects.all()
     serializer_class = CampaniaSerializer
+    permission_classes = [IsAuthenticated]
 
-# Listar campañas
+    def perform_create(self, serializer):
+        serializer.save(creador=self.request.user)
+
+
 class CampaniaListView(generics.ListAPIView):
-    queryset = Campania.objects.all()
+    queryset = Campania.objects.order_by('-id')
     serializer_class = CampaniaSerializer
+    permission_classes = [AllowAny]
 
-# Extraer o actualizar campaña
+
+class MisCampaniasView(generics.ListAPIView):
+    serializer_class = CampaniaSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return Campania.objects.filter(creador=self.request.user).order_by('-id')
+
+
 class CampaniaRetrieveUpdateView(generics.RetrieveUpdateAPIView):
     queryset = Campania.objects.all()
     serializer_class = CampaniaSerializer
+    permission_classes = [EsCreadorOConsulta]
 
-# Borrar campaña
+
 class CampaniaDestroyView(generics.DestroyAPIView):
     queryset = Campania.objects.all()
     serializer_class = CampaniaSerializer
+    permission_classes = [IsAuthenticated, EsCreadorOConsulta]
 
 
 class RegistroView(generics.GenericAPIView):

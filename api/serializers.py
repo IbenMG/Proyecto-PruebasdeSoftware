@@ -15,10 +15,42 @@ class UsuarioSerializer(serializers.ModelSerializer):
         fields = ['id', 'nombre', 'email', 'contra']
 
 class CampaniaSerializer(serializers.ModelSerializer):
+    puede_editar = serializers.SerializerMethodField()
+    quitar_imagen = serializers.BooleanField(write_only=True, required=False, default=False)
+
     class Meta:
         model = Campania
-        fields = ['id', 'titulo', 'descripcion', 'categoria', 'imagenes', 'meta_financiera', 'fecha_limite', 'informacion_creador', 'progeso_financiero']
+        fields = [
+            'id', 'titulo', 'descripcion', 'categoria', 'imagenes',
+            'meta_financiera', 'fecha_limite', 'informacion_creador',
+            'progeso_financiero', 'creador', 'puede_editar', 'quitar_imagen',
+        ]
+        read_only_fields = ['progeso_financiero', 'creador']
+        extra_kwargs = {'imagenes': {'required': False}}
 
+    def create(self, validated_data):
+        validated_data.pop('quitar_imagen', None)
+        return super().create(validated_data)
+
+    def update(self, instance, validated_data):
+        if validated_data.pop('quitar_imagen', False):
+            validated_data['imagenes'] = ''
+        return super().update(instance, validated_data)
+
+    def get_puede_editar(self, obj):
+        request = self.context.get('request')
+        return bool(request and request.user.is_authenticated
+                    and obj.creador_id == request.user.pk)
+
+    def validate_meta_financiera(self, value):
+        if value <= 0:
+            raise serializers.ValidationError('La meta de financiamiento debe ser mayor que cero.')
+        return value
+
+    def validate_fecha_limite(self, value):
+        if value < timezone.localdate():
+            raise serializers.ValidationError('La fecha límite no puede ser anterior al día actual.')
+        return value
 
 
 class RegistroSerializer(serializers.Serializer):

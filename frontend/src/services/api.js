@@ -1,14 +1,31 @@
 const API = 'http://localhost:8000/api';
 
-const authHeaders = () => ({
-  'Content-Type': 'application/json',
-  'Authorization': `Bearer ${localStorage.getItem('access_token')}`
-});
+async function request(path, options = {}, publicRead = false) {
+  const token = localStorage.getItem('access_token');
+  const headers = { ...options.headers };
+  if (token) headers.Authorization = `Bearer ${token}`;
+  if (options.body && !(options.body instanceof FormData)) {
+    headers['Content-Type'] = 'application/json';
+  }
+  let response = await fetch(`${API}${path}`, { ...options, headers });
+  if (publicRead && response.status === 401 && token) {
+    delete headers.Authorization;
+    response = await fetch(`${API}${path}`, { ...options, headers });
+  }
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    const error = new Error(data.detail || 'No se pudo completar la solicitud.');
+    error.details = data;
+    error.status = response.status;
+    throw error;
+  }
+  return data;
+}
 
 export const api = {
-  getCampaigns: () => fetch(`${API}/campanias/`, { headers: authHeaders() }).then(r => r.json()),
-  createCampaign: (data) => fetch(`${API}/campanias/create/`, {
-    method: 'POST', headers: authHeaders(), body: JSON.stringify(data)
-  }).then(r => r.json()),
-  getCampaign: (id) => fetch(`${API}/campanias/${id}/`, { headers: authHeaders() }).then(r => r.json()),
+  getCampaigns: () => request('/campanias/', {}, true),
+  getMyCampaigns: () => request('/campanias/mis/'),
+  getCampaign: (id) => request(`/campanias/${id}/`, {}, true),
+  createCampaign: (data) => request('/campanias/create/', { method: 'POST', body: data }),
+  updateCampaign: (id, data) => request(`/campanias/${id}/`, { method: 'PATCH', body: data }),
 };

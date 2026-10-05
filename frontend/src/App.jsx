@@ -48,10 +48,11 @@ function App() {
         />
       )} />
       <Route path="/main" element={isLoggedIn ? <Dashboard onLogout={logout} /> : <Navigate to="/" replace />} />
-      <Route path="/campaigns/create" element={isLoggedIn ? <CreateCampaign /> : <Navigate to="/" replace />} />
+      <Route path="/campaigns/create" element={isLoggedIn ? <CreateCampaign key="crear" /> : <Navigate to="/" replace />} />
       <Route path="/campaigns/my" element={isLoggedIn ? <MyCampaigns /> : <Navigate to="/" replace />} />
       <Route path="/campaigns/search" element={isLoggedIn ? <SearchCampaigns /> : <Navigate to="/" replace />} />
-      <Route path="/campaigns/:id" element={isLoggedIn ? <CampaignDetail /> : <Navigate to="/" replace />} />
+      <Route path="/campaigns/:id/edit" element={isLoggedIn ? <CreateCampaign key="editar" editar /> : <Navigate to="/" replace />} />
+      <Route path="/campaigns/:id" element={<CampaignDetail />} />
       <Route path="*" element={<Navigate to={isLoggedIn ? '/main' : '/'} replace />} />
     </Routes>
   );
@@ -64,7 +65,7 @@ function Dashboard({ onLogout }) {
       <p>Has iniciado sesión exitosamente.</p>
       <nav aria-label="Campañas" style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap', margin: '1rem' }}>
         <Link to="/campaigns/create">Crear campaña</Link>
-        <Link to="/campaigns/my">Mis campañas</Link>
+        <Link to="/campaigns/my">Ver mis campañas</Link>
         <Link to="/campaigns/search">Buscar campañas</Link>
       </nav>
       <button className="btn-secondary" onClick={onLogout} style={{ maxWidth: '240px' }}>Cerrar sesión</button>

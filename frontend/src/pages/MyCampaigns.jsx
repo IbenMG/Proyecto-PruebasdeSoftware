@@ -9,7 +9,7 @@ export default function MyCampaigns() {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    api.getCampaigns()
+    api.getMyCampaigns()
       .then(data => {
         setCampaigns(data);
         setLoading(false);
@@ -24,7 +24,8 @@ export default function MyCampaigns() {
 
   return (
     <div className="my-campaigns">
-      <h2>Mis Campañas</h2>
+      <Link to="/main" className="back-link">Volver al panel principal</Link>
+      <h1>Mis campañas</h1>
       {error && <div className="error-msg">{error}</div>}
       {campaigns.length === 0 ? (
         <div className="empty">
@@ -41,7 +42,7 @@ export default function MyCampaigns() {
                 <div className="progress-bar" style={{ width: `${Math.min(100, (c.progeso_financiero / c.meta_financiera) * 100)}%` }}></div>
               </div>
               <p className="progress-text">${Number(c.progeso_financiero).toLocaleString()} de ${Number(c.meta_financiera).toLocaleString()}</p>
-              <p className="deadline">Hasta: {c.fecha_limite}</p>
+              <p className="deadline">Fecha límite: {c.fecha_limite}</p>
             </Link>
           ))}
         </div>

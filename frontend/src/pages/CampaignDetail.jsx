@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useLocation } from 'react-router-dom';
 import { api } from '../services/api.js';
 import './campaigns.css';
 
 export default function CampaignDetail() {
   const { id } = useParams();
+  const location = useLocation();
   const [campaign, setCampaign] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -22,7 +23,7 @@ export default function CampaignDetail() {
   }, [id]);
 
   if (loading) return <div className="detail-loading">Cargando campaña...</div>;
-  if (error) return <div className="detail-error">{error}</div>;
+  if (error) return <div className="detail-error" role="alert">{error}</div>;
   if (!campaign) return null;
 
   const progress = campaign.meta_financiera > 0
@@ -31,10 +32,13 @@ export default function CampaignDetail() {
 
   return (
     <div className="campaign-detail">
-      <Link to="/campaigns/search" className="back-link">← Volver a buscar</Link>
+      <Link to="/" className="back-link">Ir al inicio</Link>
+      {location.state?.mensaje && <p role="status" className="success-message">{location.state.mensaje}</p>}
 
       <article className="detail-card">
         <h1>{campaign.titulo}</h1>
+        {campaign.puede_editar && <Link className="back-link" to={`/campaigns/${id}/edit`}>Editar campaña</Link>}
+        {campaign.imagenes && <img className="campaign-image" src={campaign.imagenes} alt={`Imagen de ${campaign.titulo}`} />}
         <span className="category-badge">{campaign.categoria}</span>
 
         <div className="progress-section">
