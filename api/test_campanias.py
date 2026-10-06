@@ -146,3 +146,18 @@ def test_imagen_opcional_y_retiro(cliente, datos, settings, tmp_path):
     assert response.status_code == 200
     campaign.refresh_from_db()
     assert not campaign.imagenes
+
+
+def test_creador_elimina_campania(cliente, campania, otro, datos):
+    ajena = Campania.objects.create(creador=otro, **datos)
+    response = cliente.delete(f'/api/campanias/{campania.pk}/delete/')
+    assert response.status_code == 204
+    assert not Campania.objects.filter(pk=campania.pk).exists()
+    assert Campania.objects.filter(pk=ajena.pk).exists()
+    assert cliente.get('/api/campanias/mis/').data == []
+    assert APIClient().get(f'/api/campanias/{campania.pk}/').status_code == 404
+
+
+def test_anonimo_no_elimina_campania(campania):
+    assert APIClient().delete(f'/api/campanias/{campania.pk}/delete/').status_code == 401
+    assert Campania.objects.filter(pk=campania.pk).exists()

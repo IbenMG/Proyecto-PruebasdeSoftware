@@ -27,5 +27,6 @@ export const api = {
   getMyCampaigns: () => request('/campanias/mis/'),
   getCampaign: (id) => request(`/campanias/${id}/`, {}, true),
   createCampaign: (data) => request('/campanias/create/', { method: 'POST', body: data }),
+  deleteCampaign: (id) => request(`/campanias/${id}/delete/`, { method: 'DELETE' }),
   updateCampaign: (id, data) => request(`/campanias/${id}/`, { method: 'PATCH', body: data }),
 };
