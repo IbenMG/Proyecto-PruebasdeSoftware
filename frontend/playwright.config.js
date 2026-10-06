@@ -57,6 +57,17 @@ export default defineConfig({
         channel: 'msedge',
       },
     },
+    {
+      name: 'brave',
+      use: {
+        ...devices['Desktop Chrome'],
+        browserName: 'chromium',
+        launchOptions: {
+          executablePath:
+            'C:/Program Files/BraveSoftware/Brave-Browser/Application/brave.exe',
+        },
+      },
+    },
 
     /* Test against mobile viewports. */
     // {
