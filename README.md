@@ -86,13 +86,12 @@ El proyecto se encuentra actualmente en su etapa inicial.
 - [x] Definición del stack tecnológico.
 - [x] Definición inicial del alcance del MVP.
 - [x] Definición inicial de la arquitectura.
-- [ ] Definición de requisitos e historias de usuario.
-- [ ] Configuración del repositorio y flujo Git.
-- [ ] Configuración del backend.
-- [ ] Configuración de PostgreSQL.
+- [x] Definición de requisitos e historias de usuario.
+- [x] Configuración del repositorio y flujo Git.
+- [x] Configuración del backend.
+- [x] Configuración de PostgreSQL.
 - [ ] Configuración del frontend.
-- [ ] Implementación de funcionalidades del MVP.
-- [ ] Implementación de pruebas automatizadas.
-- [ ] Configuración de GitHub Actions.
+- [x] Implementación de funcionalidades del MVP.
+- [x] Implementación de pruebas automatizadas.
 - [ ] Documentación de la Entrega 1.
 - [ ] Release `v1.0-entrega1`.
