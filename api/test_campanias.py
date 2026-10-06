@@ -100,10 +100,12 @@ def test_detalle_publico_y_financiamiento(campania):
 
 
 def test_mis_campanias_solo_propias(cliente, campania, otro, datos):
+    segunda = Campania.objects.create(creador=campania.creador, **{**datos, 'titulo': 'Segunda campaña'})
     Campania.objects.create(creador=otro, **datos)
     response = cliente.get('/api/campanias/mis/')
     assert response.status_code == 200
-    assert [row['id'] for row in response.data] == [campania.pk]
+    assert len(response.data) == 2
+    assert {row['id'] for row in response.data} == {campania.pk, segunda.pk}
     assert APIClient().get('/api/campanias/mis/').status_code == 401
 
 

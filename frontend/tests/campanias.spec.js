@@ -95,18 +95,46 @@ test('campos vacíos, meta y fecha inválidas bloquean el envío', async ({ page
   expect(publicaciones).toBe(0);
 });
 
-test('mis campañas excluye las campañas ajenas', async ({ page, request }) => {
+test('HU04: listar todas las campañas propias y abrir su detalle', async ({ page, request }) => {
   const tokens = await sesion(page, request);
   const otro = await cuenta(request);
-  const propia = `Propia ${Date.now()}`;
-  const ajena = `Ajena ${Date.now()}`;
-  for (const [titulo, token] of [[propia, tokens.access], [ajena, otro.access]]) {
+  const sufijo = Date.now();
+  const propias = [];
+  const ajena = `Ajena ${sufijo}`;
+  for (const [titulo, token] of [
+    [`Primera propia ${sufijo}`, tokens.access],
+    [`Segunda propia ${sufijo}`, tokens.access],
+    [ajena, otro.access],
+  ]) {
+    const datos = { ...datosCampania(titulo), descripcion: `Descripción de ${titulo}` };
     const response = await request.post(`${API}/campanias/create/`, {
-      headers: { Authorization: `Bearer ${token}` }, data: datosCampania(titulo),
+      headers: { Authorization: `Bearer ${token}` }, data: datos,
     });
     expect(response.status()).toBe(201);
+    const creada = await response.json();
+    if (token === tokens.access) propias.push({ ...datos, id: creada.id });
   }
+
+  // CA 1: desde Main se muestran todas las propias y ninguna ajena.
   await page.getByRole('link', { name: 'Ver mis campañas' }).click();
-  await expect(page.getByRole('heading', { name: propia, exact: true })).toBeVisible();
+  await expect(page).toHaveURL(/\/campaigns\/my$/);
+  await expect(page.getByRole('heading', { name: 'Mis campañas', exact: true })).toBeVisible();
+  await expect(page.locator('.campaign-card')).toHaveCount(propias.length);
   await expect(page.getByRole('heading', { name: ajena, exact: true })).toHaveCount(0);
+  for (const propia of propias) {
+    await expect(page.getByRole('heading', { name: propia.titulo, exact: true })).toBeVisible();
+  }
+
+  // CA 2: cada tarjeta abre el detalle correspondiente, no el de otra campaña.
+  for (const propia of propias) {
+    await page.getByRole('link').filter({
+      has: page.getByRole('heading', { name: propia.titulo, exact: true }),
+    }).click();
+    await expect(page).toHaveURL(new RegExp(`/campaigns/${propia.id}$`));
+    await expect(page.getByRole('heading', { name: propia.titulo, exact: true, level: 1 })).toBeVisible();
+    await expect(page.getByText(propia.descripcion, { exact: true })).toBeVisible();
+    await page.getByRole('link', { name: 'Ir al inicio' }).click();
+    await page.getByRole('link', { name: 'Ver mis campañas' }).click();
+    await expect(page).toHaveURL(/\/campaigns\/my$/);
+  }
 });
