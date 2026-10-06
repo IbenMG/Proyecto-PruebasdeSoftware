@@ -1,0 +1,9 @@
+.campaign-search { max-width: 640px; margin: 1.5rem auto; text-align: left; }
+.campaign-search label { display: block; margin-bottom: .5rem; font-weight: 600; }
+.campaign-search input { box-sizing: border-box; width: 100%; padding: .8rem 1rem; border: 1px solid #64748b; border-radius: 8px; background: white; color: #172033; }
+.campaign-search input:focus-visible, .campaign-suggestions a:focus-visible { outline: 3px solid #2563eb; outline-offset: 2px; }
+.campaign-search [role="status"] { font-size: .9rem; margin: .5rem 0; }
+.campaign-suggestions { list-style: none; padding: 0; margin: 0; max-height: 320px; overflow-y: auto; border: 1px solid #cbd5e1; border-radius: 8px; background: white; }
+.campaign-suggestions li + li { border-top: 1px solid #e2e8f0; }
+.campaign-suggestions a { display: block; padding: .85rem 1rem; color: #172033; text-decoration: none; overflow-wrap: anywhere; }
+.campaign-suggestions a:hover { background: #eff6ff; }
