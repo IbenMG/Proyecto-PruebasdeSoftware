@@ -6,6 +6,7 @@ import CreateCampaign from './pages/CreateCampaign.jsx';
 import MyCampaigns from './pages/MyCampaigns.jsx';
 import SearchCampaigns from './pages/SearchCampaigns.jsx';
 import CampaignDetail from './pages/CampaignDetail.jsx';
+import CampaignSearch from './components/CampaignSearch.jsx';
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(() => Boolean(localStorage.getItem('access_token')));
@@ -63,6 +64,7 @@ function Dashboard({ onLogout }) {
     <div className="main-container" style={{ padding: '2rem', textAlign: 'center' }}>
       <h1>¡Bienvenido al sistema principal!</h1>
       <p>Has iniciado sesión exitosamente.</p>
+      <CampaignSearch />
       <nav aria-label="Campañas" style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap', margin: '1rem' }}>
         <Link to="/campaigns/create">Crear campaña</Link>
         <Link to="/campaigns/my">Ver mis campañas</Link>
