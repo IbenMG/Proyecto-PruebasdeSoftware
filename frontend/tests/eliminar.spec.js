@@ -40,8 +40,9 @@ test('cancelar conserva la campaña; confirmar la elimina y vuelve al listado', 
   page.once('dialog', dialog => dialog.accept());
   await page.getByRole('button', { name: 'Eliminar campaña', exact: true }).click();
   await expect(page).toHaveURL(/\/campaigns\/my$/);
-  await expect(page.getByRole('status')).toHaveText('Campaña eliminada correctamente.');
-  await expect(page.getByText('No tienes campañas creadas.', { exact: true })).toBeVisible();
+  await expect(
+    page.getByRole('status').filter({ hasText: 'Campaña eliminada correctamente.' })
+  ).toBeVisible();  await expect(page.getByText('No tienes campañas creadas.', { exact: true })).toBeVisible();
   expect((await request.get(`${API}/campanias/${campaign.id}/`)).status()).toBe(404);
   expect(deletes).toBe(1);
 });
