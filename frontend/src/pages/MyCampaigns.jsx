@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { api } from '../services/api.js';
 import './campaigns.css';
 
 export default function MyCampaigns() {
+  const location = useLocation();
   const [campaigns, setCampaigns] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -26,6 +27,7 @@ export default function MyCampaigns() {
     <div className="my-campaigns">
       <Link to="/main" className="back-link">Volver al panel principal</Link>
       <h1>Mis campañas</h1>
+      {location.state?.mensaje && <p role="status" className="success-message">{location.state.mensaje}</p>}
       {error && <div className="error-msg">{error}</div>}
       {campaigns.length === 0 ? (
         <div className="empty">

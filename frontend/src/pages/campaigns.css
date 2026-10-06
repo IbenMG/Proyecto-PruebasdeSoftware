@@ -22,3 +22,8 @@
 .field input[type="checkbox"] { width: auto; margin-right: .5rem; }
 .campaign-image { max-width: 100%; max-height: 360px; object-fit: contain; margin: 1rem 0; }
 .success-message { padding: 1rem; background: #dcfce7; color: #14532d; border-radius: 8px; margin: 1rem 0; }
+
+.btn-delete-campaign { display: inline-block; margin: .5rem 1rem; padding: .65rem 1rem; border: 1px solid #b91c1c; border-radius: 6px; background: #b91c1c; color: white; cursor: pointer; }
+.btn-delete-campaign:hover { background: #991b1b; }
+.btn-delete-campaign:disabled { opacity: .65; cursor: wait; }
+.btn-delete-campaign:focus-visible { outline: 3px solid #b91c1c; outline-offset: 3px; }
