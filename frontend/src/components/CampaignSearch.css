@@ -7,3 +7,13 @@
 .campaign-suggestions li + li { border-top: 1px solid #e2e8f0; }
 .campaign-suggestions a { display: block; padding: .85rem 1rem; color: #172033; text-decoration: none; overflow-wrap: anywhere; }
 .campaign-suggestions a:hover { background: #eff6ff; }
+.campaign-search label { font-size: 13px; color: var(--muted); }
+.campaign-search input { border-color: #b9c6bc; border-radius: 12px; padding: 17px 20px; color: var(--ink); box-shadow: 0 4px 16px #183b3204; }
+.campaign-suggestions { border-color: var(--line); border-radius: 12px; box-shadow: 0 12px 26px #183b3210; }
+.campaign-suggestions a { color: var(--ink); padding: 16px 20px; }
+.campaign-suggestions a:hover { background: #eef3e8; }
+.campaign-search [role="status"] { color: var(--muted); font-size: 12px; min-height: 18px; }
+
+.search-input-wrap { position: relative; }
+.search-clear { font-size: 12px; color: var(--green); margin: 8px 0 0; padding: 6px 0; text-decoration: underline; text-underline-offset: 3px; }
+.search-hint { font-size: 12px; color: var(--muted); margin: 8px 0; }

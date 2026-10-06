@@ -138,7 +138,7 @@ test('registro, duplicados e inicio de sesión', async ({ page }) => {
   await page.getByRole('button', { name: 'Iniciar Sesión', exact: true }).click();
 
   await expect(
-    page.getByRole('heading', { name: '¡Bienvenido al sistema principal!' })
+    page.getByRole('heading', { name: 'El próximo gran proyecto puede empezar contigo.' })
   ).toBeVisible();
 
   await page.getByRole('button', { name: 'Cerrar sesión' }).click();

@@ -20,6 +20,7 @@ export default function CreateCampaign({ editar = false }) {
   const { id } = useParams();
   const navigate = useNavigate();
   const [form, setForm] = useState(valoresIniciales);
+  const [savedForm, setSavedForm] = useState(valoresIniciales);
   const [imagen, setImagen] = useState(null);
   const [imagenActual, setImagenActual] = useState('');
   const [quitarImagen, setQuitarImagen] = useState(false);
@@ -40,6 +41,7 @@ export default function CreateCampaign({ editar = false }) {
       }
       setPermitido(true);
       setForm(Object.fromEntries(campos.map(([name]) => [name, String(data[name] ?? '')])));
+      setSavedForm(Object.fromEntries(campos.map(([name]) => [name, String(data[name] ?? '')])));
       setImagenActual(data.imagenes || '');
     }).catch(() => {
       if (activo) setSubmitError('No se pudo cargar la campaña.');
@@ -66,12 +68,23 @@ export default function CreateCampaign({ editar = false }) {
     if (errors[name]) setErrors(previous => ({ ...previous, [name]: validar(name, value) }));
   }
 
+  function confirmarSalida(event) {
+    const changed = campos.some(([name]) => form[name] !== savedForm[name]) || imagen || quitarImagen;
+    if (enviando || (changed && !window.confirm('Tienes cambios sin guardar. ¿Quieres salir y descartarlos?'))) {
+      event.preventDefault();
+    }
+  }
+
   async function enviar(event) {
     event.preventDefault();
     const nuevosErrores = Object.fromEntries(campos.map(([name]) => [name, validar(name, form[name])]));
     setErrors(nuevosErrores);
     setSubmitError('');
-    if (Object.values(nuevosErrores).some(Boolean)) return;
+    if (Object.values(nuevosErrores).some(Boolean)) {
+      const first = campos.find(([name]) => nuevosErrores[name]);
+      document.getElementById(`campania-${first[0]}`)?.focus();
+      return;
+    }
 
     const body = new FormData();
     for (const [name, value] of Object.entries(form)) body.append(name, value.trim());
@@ -102,8 +115,9 @@ export default function CreateCampaign({ editar = false }) {
 
   return (
     <main className="create-campaign">
-      <Link to="/main" className="back-link">Volver al panel principal</Link>
+      <Link to="/main" className="back-link" onClick={confirmarSalida}>Volver al panel principal</Link>
       <h1>{editar ? 'Editar campaña' : 'Crear campaña'}</h1>
+      <p className="page-intro">Dale un nombre claro a tu idea y cuenta qué quieres lograr.</p>
       {submitError && <p role="alert" className="error-msg">{submitError}</p>}
       {permitido && (
         <form onSubmit={enviar} noValidate>
@@ -125,6 +139,9 @@ export default function CreateCampaign({ editar = false }) {
                     maxLength={name === 'titulo' ? 100 : name === 'categoria' ? 50 : undefined}
                   />
                 )}
+                {name === 'meta_financiera' && <p className="field-help">Ingresa el monto que necesitas reunir; debe ser mayor que cero.</p>}
+                {name === 'fecha_limite' && <p className="field-help">Puedes elegir hoy o una fecha futura.</p>}
+                {name === 'informacion_creador' && <p className="field-help">Presenta a la persona o equipo responsable. Esta información será pública.</p>}
                 {errors[name] && <p id={`error-${name}`} className="error-msg" role="alert">{errors[name]}</p>}
               </div>
             );
@@ -147,9 +164,10 @@ export default function CreateCampaign({ editar = false }) {
               </>
             )}
           </div>
-          <button type="submit" className="btn-submit" disabled={enviando}>
+          <div className="form-actions"><button type="submit" className="btn-submit" disabled={enviando}>
             {enviando ? 'Guardando...' : editar ? 'Guardar cambios' : 'Publicar campaña'}
           </button>
+          <Link className="btn-secondary cancel-link" to={editar ? `/campaigns/${id}` : '/main'} onClick={confirmarSalida}>Cancelar</Link></div>
         </form>
       )}
     </main>
