@@ -1,4 +1,4 @@
-import { useEffect, useId, useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../services/api.js';
 import { buscarCampanias } from '../utils/buscarCampanias.js';
@@ -6,6 +6,7 @@ import './CampaignSearch.css';
 
 export default function CampaignSearch() {
   const id = useId();
+  const inputRef = useRef(null);
   const [query, setQuery] = useState('');
   const [campaigns, setCampaigns] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -25,9 +26,12 @@ export default function CampaignSearch() {
   return (
     <section className="campaign-search" aria-label="Búsqueda de campañas">
       <label htmlFor={id}>Buscar campañas por nombre</label>
-      <input id={id} type="search" placeholder="Escribe el nombre de una campaña"
+      <div className="search-input-wrap"><input ref={inputRef} id={id} type="search" placeholder="Escribe el nombre de una campaña"
         value={query} onChange={event => setQuery(event.target.value)}
-        autoComplete="off" aria-describedby={`${id}-status`} />
+        autoComplete="off" aria-describedby={`${id}-hint ${id}-status`} />
+      {searching && <button className="search-clear" type="button" onClick={() => { setQuery(''); inputRef.current?.focus(); }}>Limpiar búsqueda</button>}
+      </div>
+      <p className="search-hint" id={`${id}-hint`}>Escribe todo o parte del nombre. No necesitas usar tildes.</p>
       <p id={`${id}-status`} role="status">
         {searching && (loading ? 'Cargando campañas…' : error ? '' : results.length
           ? `${results.length} campaña(s) encontrada(s)` : 'No se encontraron campañas')}
