@@ -402,7 +402,7 @@ Antes de integrar cambios, ejecutar las pruebas relacionadas y comprobar que las
 ## Documentación
 
 - [Repositorio](https://github.com/IbenMG/Proyecto-PruebasdeSoftware)
-- [Wiki](https://github.com/IbenMG/Proyecto-PruebasdeSoftware/wiki)
+- [Wiki](https://github.com/IbenMG/Proyecto-PruebasdeSoftware)
 - [Releases](https://github.com/IbenMG/Proyecto-PruebasdeSoftware/releases)
 - [Documentación del proyecto](docs/)
 - [Decisiones de usabilidad](docs/usabilidad-interfaz.md)
