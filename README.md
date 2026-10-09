@@ -425,4 +425,4 @@ Antes de integrar cambios, ejecutar las pruebas relacionadas y comprobar que las
 - [x] Pruebas unitarias, de integración y E2E.
 - [x] Mejora visual de la interfaz.
 - [x] Incorporar el enlace al video.
-- [ ] Confirmar la publicación de la release `v1.0-entrega1`.
+- [x] Confirmar la publicación de la release `v1.0-entrega1`.
