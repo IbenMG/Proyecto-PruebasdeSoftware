@@ -1,0 +1,23 @@
+.login-container { min-height: 100dvh; display: grid; grid-template-columns: 1fr 1fr; max-width: 1400px; margin: auto; padding: 28px; gap: 5%; align-items: center; }
+.auth-story { align-self: stretch; background: #183f33; color: #fffef4; border-radius: 24px; padding: 44px; overflow: hidden; position: relative; min-height: 640px; }
+.auth-story .brand { margin-bottom: 90px; }
+.auth-story .brand-mark { background: var(--lime); color: var(--ink); }
+.auth-story .eyebrow { color: var(--lime); }
+.auth-story h1 { font-size: clamp(34px, 4vw, 54px); line-height: 1.1; letter-spacing: -2px; font-weight: 650; }
+.auth-story > p:not(.eyebrow) { max-width: 340px; line-height: 1.8; color: #d6e1d9; }
+.auth-decoration { width: 210px; height: 210px; background: var(--lime); border-radius: 50% 50% 10% 50%; color: var(--ink); display: grid; place-items: center; font-size: 140px; margin: 40px 0 -70px auto; transform: rotate(-12deg); }
+.login-card { width: 100%; max-width: 430px; padding: 32px 20px; margin: auto; }
+.login-card h2 { font-size: 32px; letter-spacing: -1px; font-weight: 700; margin-bottom: 30px; }
+.input-group { display: flex; flex-direction: column; margin-bottom: 20px; gap: 8px; }
+.input-group label { font-size: 14px; font-weight: 600; }
+.input-group input, .field input, .field textarea { background: #fff; color: var(--ink); border: 1px solid #b9c6bc; border-radius: 9px; padding: 13px 14px; width: 100%; }
+.input-group input:focus, .field input:focus, .field textarea:focus { border-color: var(--green); box-shadow: 0 0 0 3px #215c4515; }
+.btn-submit, .btn-secondary { padding: 13px 22px; border-radius: 9px; font-size: 14px; font-weight: 650; width: 100%; display: inline-block; }
+.btn-submit { background: var(--green); color: white; border: 1px solid var(--green); margin-top: 12px; }
+.btn-submit:hover { background: #174632; }
+.btn-secondary { border: 1px solid #bbc9bc; background: transparent; color: var(--ink); margin-top: 12px; }
+.btn-secondary:hover { background: #e8eee2; }
+[role="alert"], .error-message { color: #a12626; font-size: 14px; line-height: 1.5; }
+.input-group input[aria-invalid="true"], .input-group input.error { border-color: #b91c1c; }
+.login-card [role="status"] { padding: 14px; background: #e4efdd; border-radius: 9px; margin-bottom: 20px; }
+@media(max-width: 760px) { .login-container { display: block; padding: 20px; } .auth-story { min-height: auto; padding: 24px; } .auth-story .brand { margin-bottom: 28px; } .auth-story h1 { font-size: 32px; letter-spacing: -1px; } .auth-story > p:not(.eyebrow), .auth-decoration { display: none; } .login-card { padding: 30px 4px; } }
