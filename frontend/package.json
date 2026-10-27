@@ -8,6 +8,8 @@
     "build": "vite build",
     "lint": "eslint .",
     "test:unit": "node --test unit/buscarCampanias.test.js unit/checkpoints.test.js unit/actualizaciones.test.js",
+    "test:unit:coverage": "c8 --reporter=text --reporter=lcov --check-coverage --lines=80 --functions=80 --branches=70 --statements=80 --include=src/utils/*.js node --test unit/buscarCampanias.test.js unit/checkpoints.test.js unit/actualizaciones.test.js",
+    "test:e2e": "playwright test tests/registro.spec.js tests/login.spec.js tests/campanias.spec.js tests/busqueda.spec.js tests/eliminar.spec.js tests/entrega2.spec.js --project=chromium",
     "preview": "vite preview"
   },
   "dependencies": {
@@ -24,6 +26,7 @@
     "@types/react-dom": "^19.2.7",
     "@vitejs/plugin-react": "^6.1.1",
     "autoprefixer": "^10.6.1",
+    "c8": "^10.1.3",
     "eslint": "^10.10.0",
     "eslint-plugin-react-hooks": "^7.1.1",
     "eslint-plugin-react-refresh": "^0.5.6",
