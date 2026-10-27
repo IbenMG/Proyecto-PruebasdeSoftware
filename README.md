@@ -29,6 +29,11 @@ La primera entrega implementa la gestión de usuarios y campañas:
 
 La búsqueda utiliza coincidencias de texto en el título; no implementa un motor de búsqueda semántica.
 
+## Funcionalidades de la Entrega 2
+
+- **Hitos y metas graduales:** los creadores pueden definir checkpoints con monto objetivo y descripción. La aplicación los ordena por monto y calcula automáticamente si están alcanzados según el progreso financiero.
+- **Muro de actualizaciones:** los propietarios pueden publicar novedades de sus campañas. Las actualizaciones son visibles públicamente y se ordenan desde la más reciente a la más antigua.
+
 ## Funcionalidades implementadas
 
 | Funcionalidad | Descripción |
@@ -244,7 +249,7 @@ Las pruebas se organizan a partir de las historias de usuario y sus criterios de
 
 | Nivel | Herramienta | Alcance |
 |---|---|---|
-| Unitarias | Node.js Test Runner | Función de búsqueda aislada |
+| Unitarias | Node.js Test Runner + pytest | Búsqueda, checkpoints, actualizaciones y reglas de serializers aisladas |
 | Integración | pytest + pytest-django | API, validaciones, permisos y persistencia |
 | Extremo a extremo | Playwright | Flujos completos desde el navegador |
 
@@ -257,22 +262,31 @@ Las pruebas se organizan a partir de las historias de usuario y sus criterios de
 
 Usar pytest no convierte automáticamente una prueba en unitaria. Las pruebas de la API se clasifican como integración porque involucran distintos componentes y una base de datos de pruebas.
 
-### Pruebas unitarias de búsqueda
+### Pruebas unitarias del frontend
 
-Se implementaron cuatro casos:
+La suite del frontend contiene 29 casos sin backend ni navegador:
 
-1. Coincidencia exacta antes de coincidencias parciales, contemplando mayúsculas y tildes.
-2. Consulta vacía.
-3. Consulta sin coincidencias.
-4. Búsqueda limitada al título.
+- Búsqueda por nombre: normalización, coincidencias exactas/parciales, empates y no mutación de la lista.
+- Checkpoints: orden, límites de monto y estado según progreso.
+- Actualizaciones: validación de título/contenido y orden cronológico.
 
 Desde `frontend`, en Windows o Linux:
 
 ```bash
-node --test unit/buscarCampanias.test.js
+npm run test:unit
 ```
 
 No requieren backend, navegador ni base de datos.
+
+### Pruebas unitarias del backend
+
+`api/test_unit_serializers.py` contiene 26 casos aislados para validaciones de checkpoints, actualizaciones, campañas, registro y login. No utiliza una base de datos; las consultas de autenticación se reemplazan por mocks.
+
+Desde la raíz:
+
+```bash
+python -m pytest api/test_unit_serializers.py --ds=config.settings -q
+```
 
 ### Pruebas de integración del backend
 
@@ -305,7 +319,7 @@ El total actualizado de casos se muestra en la salida de pytest.
 
 ### Pruebas E2E
 
-La suite funcional incluye 16 pruebas:
+La suite funcional incluye 18 pruebas:
 
 | Área | Cantidad |
 |---|---:|
@@ -314,7 +328,8 @@ La suite funcional incluye 16 pruebas:
 | Campañas | 3 |
 | Eliminación | 3 |
 | Búsqueda | 3 |
-| **Total** | **16** |
+| Entrega 2 | 2 |
+| **Total** | **18** |
 
 Para ejecutarlas:
 
@@ -405,6 +420,9 @@ Antes de integrar cambios, ejecutar las pruebas relacionadas y comprobar que las
 - [Wiki](https://github.com/IbenMG/Proyecto-PruebasdeSoftware)
 - [Releases](https://github.com/IbenMG/Proyecto-PruebasdeSoftware/releases)
 - [Documentación del proyecto](docs/)
+- [HU-06: Hitos y metas graduales](docs/HU06.md)
+- [HU-07: Muro de actualizaciones](docs/HU07.md)
+- [Pruebas unitarias](docs/pruebas-unitarias.md)
 - [Decisiones de usabilidad](docs/usabilidad-interfaz.md)
 
 **Video de la Entrega 1:** 

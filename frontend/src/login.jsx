@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import './login.css';
+import Brand from './components/Brand.jsx';
 
 export default function Login({ onLoginSuccess, onRegistro, mensaje }) {
   const [email, setEmail] = useState('');
@@ -52,11 +53,10 @@ export default function Login({ onLoginSuccess, onRegistro, mensaje }) {
   return (
     <div className="login-container">
       <aside className="auth-story">
-        <span className="brand"><span className="brand-mark" aria-hidden="true">c.</span>CrowdStarter</span>
+        <Brand variant="full" />
         <p className="eyebrow">EL COMIENZO DE ALGO GRANDE</p>
         <h1>Tu idea merece<br />dar el primer paso.</h1>
-        <p>Un espacio para compartir proyectos y conectar con quienes creen en ellos.</p>
-        <div className="auth-decoration" aria-hidden="true">↗</div>
+        <p>Participa, comparte tu proyecto y construye junto a una comunidad que cree en las buenas ideas.</p>
       </aside>
       <div className="login-card">
         <h2>Iniciar sesión</h2>

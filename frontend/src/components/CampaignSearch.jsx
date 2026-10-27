@@ -4,7 +4,7 @@ import { api } from '../services/api.js';
 import { buscarCampanias } from '../utils/buscarCampanias.js';
 import './CampaignSearch.css';
 
-export default function CampaignSearch() {
+export default function CampaignSearch({ compact = false }) {
   const id = useId();
   const inputRef = useRef(null);
   const [query, setQuery] = useState('');
@@ -24,15 +24,16 @@ export default function CampaignSearch() {
   const results = buscarCampanias(campaigns, query);
   const searching = Boolean(query.trim());
   return (
-    <section className="campaign-search" aria-label="Búsqueda de campañas">
+    <section className={`campaign-search${compact ? ' campaign-search-compact' : ''}${compact && searching ? ' campaign-search-has-query' : ''}`} aria-label="Búsqueda de campañas">
       <label htmlFor={id}>Buscar campañas por nombre</label>
-      <div className="search-input-wrap"><input ref={inputRef} id={id} type="search" placeholder="Escribe el nombre de una campaña"
+      <div className="search-input-wrap"><input ref={inputRef} id={id} type="search"
+        placeholder={compact ? 'Buscar campañas por nombre' : 'Escribe el nombre de una campaña'}
         value={query} onChange={event => setQuery(event.target.value)}
         autoComplete="off" aria-describedby={`${id}-hint ${id}-status`} />
       {searching && <button className="search-clear" type="button" onClick={() => { setQuery(''); inputRef.current?.focus(); }}>Limpiar búsqueda</button>}
       </div>
       <p className="search-hint" id={`${id}-hint`}>Escribe todo o parte del nombre. No necesitas usar tildes.</p>
-      <p id={`${id}-status`} role="status">
+      <p id={`${id}-status`} role={searching ? 'status' : undefined}>
         {searching && (loading ? 'Cargando campañas…' : error ? '' : results.length
           ? `${results.length} campaña(s) encontrada(s)` : 'No se encontraron campañas')}
       </p>

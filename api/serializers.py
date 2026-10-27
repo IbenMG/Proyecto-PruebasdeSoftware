@@ -1,7 +1,9 @@
+import json
+
 from rest_framework import serializers
 from rest_framework.exceptions import AuthenticationFailed
 from rest_framework_simplejwt.tokens import RefreshToken
-from .models import Usuario, Campania
+from .models import Actualizacion, Checkpoint, Usuario, Campania
 from django.contrib.auth import authenticate, get_user_model
 from django.contrib.auth.validators import UnicodeUsernameValidator
 from django.db import IntegrityError, transaction
@@ -14,9 +16,65 @@ class UsuarioSerializer(serializers.ModelSerializer):
         model = Usuario
         fields = ['id', 'nombre', 'email', 'contra']
 
+
+class CheckpointSerializer(serializers.ModelSerializer):
+    alcanzado = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Checkpoint
+        fields = ['id', 'titulo', 'descripcion', 'monto_objetivo', 'alcanzado']
+        read_only_fields = ['id', 'alcanzado']
+
+    def validate_titulo(self, value):
+        value = value.strip()
+        if not value:
+            raise serializers.ValidationError('El título del checkpoint es obligatorio.')
+        return value
+
+    def validate_descripcion(self, value):
+        value = value.strip()
+        if not value:
+            raise serializers.ValidationError('La descripción del checkpoint es obligatoria.')
+        return value
+
+    def validate_monto_objetivo(self, value):
+        if value <= 0:
+            raise serializers.ValidationError(
+                'Los hitos deben estar dentro del rango (0, meta global].'
+            )
+        return value
+
+    def get_alcanzado(self, obj):
+        return obj.campania.progeso_financiero >= obj.monto_objetivo
+
+
+class ActualizacionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Actualizacion
+        fields = ['id', 'titulo', 'contenido', 'fecha_publicacion']
+        read_only_fields = ['id', 'fecha_publicacion']
+
+    def validate_titulo(self, value):
+        value = value.strip()
+        if len(value) < 3:
+            raise serializers.ValidationError(
+                'El título debe tener al menos 3 caracteres.'
+            )
+        return value
+
+    def validate_contenido(self, value):
+        value = value.strip()
+        if not value:
+            raise serializers.ValidationError(
+                'El contenido de la actualización es obligatorio.'
+            )
+        return value
+
+
 class CampaniaSerializer(serializers.ModelSerializer):
     puede_editar = serializers.SerializerMethodField()
     quitar_imagen = serializers.BooleanField(write_only=True, required=False, default=False)
+    checkpoints = CheckpointSerializer(many=True, required=False)
 
     class Meta:
         model = Campania
@@ -24,18 +82,75 @@ class CampaniaSerializer(serializers.ModelSerializer):
             'id', 'titulo', 'descripcion', 'categoria', 'imagenes',
             'meta_financiera', 'fecha_limite', 'informacion_creador',
             'progeso_financiero', 'creador', 'puede_editar', 'quitar_imagen',
+            'checkpoints',
         ]
         read_only_fields = ['progeso_financiero', 'creador']
         extra_kwargs = {'imagenes': {'required': False}}
 
+    def to_internal_value(self, data):
+        """Accept checkpoint arrays sent inside a multipart form as JSON."""
+        raw_checkpoints = data.get('checkpoints') if hasattr(data, 'get') else None
+        if isinstance(raw_checkpoints, str):
+            try:
+                parsed_checkpoints = json.loads(raw_checkpoints)
+            except json.JSONDecodeError as error:
+                raise serializers.ValidationError({
+                    'checkpoints': 'El formato de los checkpoints no es válido.'
+                }) from error
+            if hasattr(data, 'keys') and hasattr(data, 'getlist'):
+                data = {key: data.get(key) for key in data.keys()}
+            else:
+                data = data.copy()
+            data['checkpoints'] = parsed_checkpoints
+        return super().to_internal_value(data)
+
+    def validate(self, attrs):
+        if 'checkpoints' in attrs:
+            checkpoints = attrs['checkpoints']
+        elif self.instance is not None and 'meta_financiera' in attrs:
+            checkpoints = self.instance.checkpoints.all()
+        else:
+            return attrs
+
+        meta_global = attrs.get('meta_financiera')
+        if meta_global is None and self.instance is not None:
+            meta_global = self.instance.meta_financiera
+
+        for checkpoint in checkpoints:
+            monto = checkpoint.monto_objetivo if isinstance(checkpoint, Checkpoint) else checkpoint['monto_objetivo']
+            if monto > meta_global:
+                raise serializers.ValidationError({
+                    'checkpoints': (
+                        'Los hitos deben estar dentro del rango '
+                        '(0, meta global].'
+                    )
+                })
+        return attrs
+
     def create(self, validated_data):
+        checkpoints = validated_data.pop('checkpoints', [])
         validated_data.pop('quitar_imagen', None)
-        return super().create(validated_data)
+        with transaction.atomic():
+            campania = super().create(validated_data)
+            Checkpoint.objects.bulk_create([
+                Checkpoint(campania=campania, **checkpoint)
+                for checkpoint in checkpoints
+            ])
+        return campania
 
     def update(self, instance, validated_data):
+        checkpoints = validated_data.pop('checkpoints', serializers.empty)
         if validated_data.pop('quitar_imagen', False):
             validated_data['imagenes'] = ''
-        return super().update(instance, validated_data)
+        with transaction.atomic():
+            campania = super().update(instance, validated_data)
+            if checkpoints is not serializers.empty:
+                Checkpoint.objects.filter(campania=campania).delete()
+                Checkpoint.objects.bulk_create([
+                    Checkpoint(campania=campania, **checkpoint)
+                    for checkpoint in checkpoints
+                ])
+        return campania
 
     def get_puede_editar(self, obj):
         request = self.context.get('request')

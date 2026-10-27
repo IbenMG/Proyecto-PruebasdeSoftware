@@ -22,7 +22,7 @@ from rest_framework_simplejwt.views import TokenRefreshView
 from api.views import RegistroView, LoginCorreoView, MisCampaniasView
 
 from api.views import UsuarioCreateView, UsuarioListView, UsuarioRetrieveUpdateView, UsuarioDestroyView
-from api.views import CampaniaCreateView, CampaniaListView, CampaniaRetrieveUpdateView, CampaniaDestroyView
+from api.views import CampaniaCreateView, CampaniaListView, CampaniaRetrieveUpdateView, CampaniaDestroyView, CampaniaActualizacionesView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -42,6 +42,7 @@ urlpatterns = [
     path('api/campanias/', CampaniaListView.as_view(), name='campania-list'),
     path('api/campanias/<int:pk>/', CampaniaRetrieveUpdateView.as_view(), name='campania-detail'),
     path('api/campanias/<int:pk>/delete/', CampaniaDestroyView.as_view(), name='campania-delete'),
+    path('api/campanias/<int:pk>/actualizaciones/', CampaniaActualizacionesView.as_view(), name='campania-actualizaciones'),
     path('api/registro/', RegistroView.as_view(), name='registro'),
 ]
 

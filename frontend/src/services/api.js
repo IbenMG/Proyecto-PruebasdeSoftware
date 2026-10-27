@@ -3,14 +3,18 @@ const API = 'http://localhost:8000/api';
 async function request(path, options = {}, publicRead = false) {
   const token = localStorage.getItem('access_token');
   const headers = { ...options.headers };
+  const isFormData = options.body instanceof FormData;
+  const body = options.body && !isFormData && typeof options.body !== 'string'
+    ? JSON.stringify(options.body)
+    : options.body;
   if (token) headers.Authorization = `Bearer ${token}`;
-  if (options.body && !(options.body instanceof FormData)) {
+  if (body && !isFormData) {
     headers['Content-Type'] = 'application/json';
   }
-  let response = await fetch(`${API}${path}`, { ...options, headers });
+  let response = await fetch(`${API}${path}`, { ...options, headers, body });
   if (publicRead && response.status === 401 && token) {
     delete headers.Authorization;
-    response = await fetch(`${API}${path}`, { ...options, headers });
+    response = await fetch(`${API}${path}`, { ...options, headers, body });
   }
   const data = await response.json().catch(() => ({}));
   if (!response.ok) {
@@ -29,4 +33,9 @@ export const api = {
   createCampaign: (data) => request('/campanias/create/', { method: 'POST', body: data }),
   deleteCampaign: (id) => request(`/campanias/${id}/delete/`, { method: 'DELETE' }),
   updateCampaign: (id, data) => request(`/campanias/${id}/`, { method: 'PATCH', body: data }),
+  getCampaignUpdates: (id) => request(`/campanias/${id}/actualizaciones/`, {}, true),
+  createCampaignUpdate: (id, data) => request(`/campanias/${id}/actualizaciones/`, {
+    method: 'POST',
+    body: data,
+  }),
 };

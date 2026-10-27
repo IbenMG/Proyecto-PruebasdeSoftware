@@ -1,13 +1,15 @@
 from rest_framework_simplejwt.views import TokenViewBase
 from .serializers import LoginCorreoSerializer
 from rest_framework import generics
-from .models import Usuario, Campania
+from .models import Actualizacion, Usuario, Campania
 from .serializers import UsuarioSerializer, CampaniaSerializer
 from rest_framework import status
 from rest_framework.permissions import AllowAny, IsAuthenticated, BasePermission, SAFE_METHODS
 from rest_framework.response import Response
+from rest_framework.exceptions import PermissionDenied
+from django.shortcuts import get_object_or_404
 
-from .serializers import RegistroSerializer
+from .serializers import ActualizacionSerializer, RegistroSerializer
 
 
 # =======================
@@ -79,6 +81,30 @@ class CampaniaDestroyView(generics.DestroyAPIView):
     queryset = Campania.objects.all()
     serializer_class = CampaniaSerializer
     permission_classes = [IsAuthenticated, EsCreadorOConsulta]
+
+
+class CampaniaActualizacionesView(generics.ListCreateAPIView):
+    serializer_class = ActualizacionSerializer
+
+    def get_permissions(self):
+        if self.request.method in SAFE_METHODS:
+            return [AllowAny()]
+        return [IsAuthenticated()]
+
+    def get_campania(self):
+        return get_object_or_404(Campania, pk=self.kwargs['pk'])
+
+    def get_queryset(self):
+        self.get_campania()
+        return Actualizacion.objects.filter(campania_id=self.kwargs['pk'])
+
+    def perform_create(self, serializer):
+        campania = self.get_campania()
+        if campania.creador_id != self.request.user.pk:
+            raise PermissionDenied(
+                'Solo el propietario puede publicar actualizaciones.'
+            )
+        serializer.save(campania=campania)
 
 
 class RegistroView(generics.GenericAPIView):

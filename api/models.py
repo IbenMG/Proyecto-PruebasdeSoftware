@@ -22,6 +22,40 @@ class Campania(models.Model):
     informacion_creador = models.TextField()
     progeso_financiero = models.DecimalField(max_digits=10, decimal_places=2, default=0)
 
+
+class Checkpoint(models.Model):
+    campania = models.ForeignKey(
+        Campania,
+        on_delete=models.CASCADE,
+        related_name='checkpoints',
+    )
+    titulo = models.CharField(max_length=120)
+    descripcion = models.TextField()
+    monto_objetivo = models.DecimalField(max_digits=10, decimal_places=2)
+
+    class Meta:
+        ordering = ['monto_objetivo', 'id']
+
+    def __str__(self):
+        return f'{self.titulo} - {self.campania.titulo}'
+
+
+class Actualizacion(models.Model):
+    campania = models.ForeignKey(
+        Campania,
+        on_delete=models.CASCADE,
+        related_name='actualizaciones',
+    )
+    titulo = models.CharField(max_length=150)
+    contenido = models.TextField()
+    fecha_publicacion = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-fecha_publicacion', '-id']
+
+    def __str__(self):
+        return f'{self.titulo} - {self.campania.titulo}'
+
 class PerfilUsuario(models.Model):
     usuario = models.OneToOneField(
         settings.AUTH_USER_MODEL,
