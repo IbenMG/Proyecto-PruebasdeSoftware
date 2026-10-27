@@ -11,6 +11,14 @@ dist/
 playwright-report/
 test-results/
 blob-report/
+coverage.xml
+.coverage
+htmlcov/
+frontend/coverage/
+backend-test-results.xml
+reports/
+jenkins.sqlite3
+.venv-ci/
 
 # Imágenes subidas en el entorno local
 media/
