@@ -78,11 +78,12 @@ La búsqueda utiliza coincidencias de texto en el título; no implementa un moto
 | Autenticación | Simple JWT | Emisión y validación de tokens |
 | Imágenes | Pillow | Soporte de imágenes en Django |
 | Pruebas del backend | pytest + pytest-django | Pruebas de integración |
-| Pruebas unitarias | Node.js Test Runner | Verificación aislada de la búsqueda |
+| Pruebas unitarias | Node.js Test Runner + pytest-cov | Verificación aislada y cobertura de reglas de negocio |
 | Pruebas E2E | Playwright | Verificación de flujos desde el navegador |
 | Control de versiones | Git / GitHub | Ramas, revisión e integración de cambios |
+| CI/CD | GitHub Actions + Jenkins | Validación automática, artefactos y notificaciones |
 
-La automatización de pruebas mediante GitHub Actions se contempla como mejora del proceso. La ejecución local se describe más adelante.
+La automatización se ejecuta mediante GitHub Actions y también está preparada para Jenkins. El pipeline valida backend, frontend y E2E, conserva reportes y genera artefactos para un despliegue posterior.
 
 ## Arquitectura general
 
@@ -120,6 +121,10 @@ frontend/
     package.json              Dependencias y scripts
     package-lock.json         Versiones resueltas del frontend
     playwright.config.js      Configuración de pruebas E2E
+
+.github/workflows/ci.yml      Pipeline de GitHub Actions
+Jenkinsfile                   Pipeline declarativo de Jenkins
+.coveragerc                   Configuración de cobertura del backend
 
 docs/                         Documentación de funcionalidades y usabilidad
 manage.py                     Administración de Django
@@ -335,15 +340,14 @@ Para ejecutarlas:
 
 1. Iniciar PostgreSQL.
 2. Levantar Django en el puerto 8000.
-3. Levantar Vite en el puerto 5173.
-4. Ejecutar Playwright desde `frontend`.
+3. Ejecutar Playwright desde `frontend`; Vite se inicia automáticamente mediante `playwright.config.js`.
 
 #### Windows — Brave
 
 Brave debe estar instalado en la ruta indicada en `playwright.config.js`.
 
 ```powershell
-npx.cmd playwright test tests/registro.spec.js tests/login.spec.js tests/campanias.spec.js tests/busqueda.spec.js tests/eliminar.spec.js --project=brave --headed --workers=1 --reporter=list,html
+npx.cmd playwright test tests/registro.spec.js tests/login.spec.js tests/campanias.spec.js tests/busqueda.spec.js tests/eliminar.spec.js tests/entrega2.spec.js --project=brave --headed --workers=1 --reporter=list,html
 ```
 
 Para abrir el reporte:
@@ -365,7 +369,7 @@ npx playwright install --with-deps chromium
 Ejecutar la suite:
 
 ```bash
-npx playwright test tests/registro.spec.js tests/login.spec.js tests/campanias.spec.js tests/busqueda.spec.js tests/eliminar.spec.js --project=chromium --headed --workers=1 --reporter=list,html
+npx playwright test tests/registro.spec.js tests/login.spec.js tests/campanias.spec.js tests/busqueda.spec.js tests/eliminar.spec.js tests/entrega2.spec.js --project=chromium --headed --workers=1 --reporter=list,html
 ```
 
 Para abrir el reporte:
@@ -393,6 +397,22 @@ npm.cmd run build
 ```bash
 npm run build
 ```
+
+## CI/CD de la Entrega 2
+
+El proyecto cuenta con dos entradas para integración continua:
+
+- `.github/workflows/ci.yml`: se ejecuta en `push` y pull requests de `develop`, `main` y `master`.
+- `Jenkinsfile`: replica las validaciones en un pipeline Jenkins y publica reportes, artefactos y notificaciones Slack si están configuradas.
+
+Las etapas son:
+
+1. Pruebas backend con PostgreSQL en GitHub Actions o SQLite aislado en Jenkins.
+2. Pruebas unitarias frontend con cobertura, lint y build.
+3. Pruebas E2E con Django, Vite y Playwright Chromium.
+4. Publicación de cobertura, reportes JUnit, reporte HTML de Playwright y `frontend/dist/`.
+
+El alcance de CD de esta entrega genera artefactos listos para despliegue. No se incluye publicación en una nube externa. La configuración de Jenkins, GitHub Webhook, ngrok y Slack está documentada en [docs/CI-CD.md](docs/CI-CD.md).
 
 ## Integrantes
 
@@ -423,6 +443,7 @@ Antes de integrar cambios, ejecutar las pruebas relacionadas y comprobar que las
 - [HU-06: Hitos y metas graduales](docs/HU06.md)
 - [HU-07: Muro de actualizaciones](docs/HU07.md)
 - [Pruebas unitarias](docs/pruebas-unitarias.md)
+- [CI/CD de la Entrega 2](docs/CI-CD.md)
 - [Decisiones de usabilidad](docs/usabilidad-interfaz.md)
 
 **Video de la Entrega 1:** 
@@ -444,3 +465,13 @@ Antes de integrar cambios, ejecutar las pruebas relacionadas y comprobar que las
 - [x] Mejora visual de la interfaz.
 - [x] Incorporar el enlace al video.
 - [x] Confirmar la publicación de la release `v1.0-entrega1`.
+
+### Entrega 2
+
+- [x] Implementar checkpoints y metas graduales.
+- [x] Implementar muro de actualizaciones.
+- [x] Ampliar pruebas unitarias, integración y E2E.
+- [x] Configurar pipeline reproducible de GitHub Actions.
+- [x] Preparar pipeline Jenkins con reportes y artefactos.
+- [x] Documentar integración GitHub, Jenkins, ngrok y Slack.
+- [x] Incorporar cobertura con umbrales mínimos.

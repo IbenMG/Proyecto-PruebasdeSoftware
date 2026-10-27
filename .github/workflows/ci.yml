@@ -1,0 +1,207 @@
+name: CrowdStarter CI
+
+on:
+  push:
+    branches: [develop, main, master]
+  pull_request:
+    branches: [develop, main, master]
+
+permissions:
+  contents: read
+
+env:
+  PYTHON_VERSION: '3.12'
+  NODE_VERSION: '24'
+
+jobs:
+  backend:
+    name: Backend tests and coverage
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: crowdstarter_ci
+          POSTGRES_USER: crowdstarter
+          POSTGRES_PASSWORD: crowdstarter
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U crowdstarter -d crowdstarter_ci"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      DB_ENGINE: django.db.backends.postgresql
+      DB_NAME: crowdstarter_ci
+      DB_USER: crowdstarter
+      DB_PASSWORD: crowdstarter
+      DB_HOST: 127.0.0.1
+      DB_PORT: 5432
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+
+      - name: Install backend dependencies
+        run: python -m pip install -r requirements.txt
+
+      - name: Check Django configuration
+        run: python manage.py check
+
+      - name: Apply migrations
+        run: python manage.py migrate --noinput
+
+      - name: Run backend tests and coverage
+        run: >-
+          python -m pytest api --ds=config.settings -q
+          --junitxml=backend-test-results.xml
+          --cov=api
+          --cov-report=term-missing
+          --cov-report=xml:coverage.xml
+          --cov-report=html:htmlcov
+          --cov-fail-under=70
+
+      - name: Upload backend reports
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-reports
+          if-no-files-found: warn
+          path: |
+            backend-test-results.xml
+            coverage.xml
+            htmlcov/
+
+  frontend:
+    name: Frontend unit tests, lint and build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install frontend dependencies
+        working-directory: frontend
+        run: npm ci
+
+      - name: Run unit tests with coverage
+        working-directory: frontend
+        run: npm run test:unit:coverage
+
+      - name: Run lint
+        working-directory: frontend
+        run: npm run lint
+
+      - name: Build frontend
+        working-directory: frontend
+        run: npm run build
+
+      - name: Upload frontend reports
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-reports
+          if-no-files-found: warn
+          path: |
+            frontend/coverage/
+            frontend/dist/
+
+  e2e:
+    name: Playwright E2E
+    needs: [backend, frontend]
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: crowdstarter_e2e
+          POSTGRES_USER: crowdstarter
+          POSTGRES_PASSWORD: crowdstarter
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U crowdstarter -d crowdstarter_e2e"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      CI: true
+      DB_ENGINE: django.db.backends.postgresql
+      DB_NAME: crowdstarter_e2e
+      DB_USER: crowdstarter
+      DB_PASSWORD: crowdstarter
+      DB_HOST: 127.0.0.1
+      DB_PORT: 5432
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+
+      - name: Install frontend dependencies
+        working-directory: frontend
+        run: npm ci
+
+      - name: Install Chromium
+        working-directory: frontend
+        run: npx playwright install --with-deps chromium
+
+      - name: Prepare and start backend
+        run: |
+          python manage.py migrate --noinput
+          nohup python manage.py runserver 127.0.0.1:8000 > "$RUNNER_TEMP/django.log" 2>&1 &
+          echo $! > "$RUNNER_TEMP/django.pid"
+          for attempt in {1..30}; do
+            if curl --fail --silent http://127.0.0.1:8000/api/campanias/ > /dev/null; then
+              exit 0
+            fi
+            sleep 2
+          done
+          cat "$RUNNER_TEMP/django.log"
+          exit 1
+
+      - name: Run E2E tests
+        working-directory: frontend
+        run: npm run test:e2e
+
+      - name: Preserve backend log
+        if: ${{ always() }}
+        run: |
+          mkdir -p frontend/test-results
+          cp "$RUNNER_TEMP/django.log" frontend/test-results/django.log 2>/dev/null || true
+
+      - name: Upload E2E reports
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-reports
+          if-no-files-found: warn
+          path: |
+            frontend/playwright-report/
+            frontend/test-results/
