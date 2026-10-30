@@ -1,5 +1,5 @@
 # CrowdStarter
-
+ 
 Plataforma web de crowdfunding desarrollada para la asignatura **INF331 — Pruebas de Software** de la Universidad Técnica Federico Santa María.
 
 ## Objetivo
