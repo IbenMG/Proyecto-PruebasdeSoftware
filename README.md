@@ -125,6 +125,11 @@ frontend/
 .github/workflows/ci.yml      Pipeline de GitHub Actions
 Jenkinsfile                   Pipeline declarativo de Jenkins
 .coveragerc                   Configuración de cobertura del backend
+docker-compose.yml            PostgreSQL local para CrowdStarter (Docker)
+run-local.sh                  Arranque local de backend y frontend
+stop-local.sh                 Detención de los servidores locales
+run-local.bat                 Arranque local desde Windows/WSL
+stop-local.bat                Detención local desde Windows/WSL
 
 docs/                         Documentación de funcionalidades y usabilidad
 manage.py                     Administración de Django
@@ -138,7 +143,7 @@ requirements.txt              Dependencias de Python
 - Git.
 - Python compatible con las dependencias de `requirements.txt`.
 - Node.js y npm. En el desarrollo se utilizó Node.js 24.
-- PostgreSQL instalado y en ejecución.
+- PostgreSQL instalado y en ejecución, o Docker con Docker Compose para levantar PostgreSQL sin instalarlo.
 
 Cada computador necesita su propio entorno virtual y su configuración de PostgreSQL. Clonar el repositorio no transfiere bases de datos, cuentas, campañas ni imágenes cargadas en otro equipo.
 
@@ -160,6 +165,8 @@ git pull --ff-only origin develop
 ```
 
 ### 2. Preparar PostgreSQL
+
+Si se usa Docker, este paso no es necesario: `./run-local.sh --docker` levanta PostgreSQL automáticamente.
 
 Crear una base de datos llamada `crowdstarter` y asignarla al usuario que utilizará Django.
 
@@ -247,6 +254,63 @@ Acceder a:
 Mantener ambas terminales abiertas. Para detener los servidores, utilizar `Ctrl+C`.
 
 En los siguientes arranques no es necesario reinstalar las dependencias, salvo que estas hayan cambiado.
+
+### Arranque rápido con scripts
+
+Para iniciar el backend y el frontend juntos desde Linux/WSL:
+
+```bash
+./run-local.sh
+```
+
+Para detenerlos:
+
+```bash
+./stop-local.sh
+```
+
+En Windows se pueden usar `run-local.bat` y `stop-local.bat`; por ejemplo, `run-local.bat --docker` levanta PostgreSQL en Docker. Los scripts reutilizan `.venv` y `node_modules` si existen, aplican las migraciones pendientes y guardan los registros en `.local-logs/`.
+
+El backend usa la configuración de PostgreSQL del proyecto y `DB_NAME=crowdstarter` por defecto. Se puede cambiar con variables de entorno:
+
+```bash
+DB_NAME=otra_base ./run-local.sh
+```
+
+#### PostgreSQL con Docker
+
+Si el puerto 5432 está ocupado por otro proyecto, el repositorio incluye `docker-compose.yml`, que levanta PostgreSQL 16 para CrowdStarter en el puerto **5433**:
+
+```bash
+docker compose up -d db
+DB_PORT=5433 ./run-local.sh
+```
+
+También se puede iniciar todo con un solo comando:
+
+```bash
+./run-local.sh --docker
+```
+
+El contenedor se llama `crowdstarter-postgres` y los datos se conservan en el volumen `crowdstarter_pgdata`. Para detener la base:
+
+```bash
+docker compose stop db
+```
+
+O para detener la aplicación y la base:
+
+```bash
+./stop-local.sh --docker
+```
+
+Si no se dispone de PostgreSQL, se puede iniciar con una base SQLite local:
+
+```bash
+./run-local.sh --sqlite
+```
+
+La base SQLite es independiente y no contiene los datos almacenados en PostgreSQL.
 
 ## Estrategia de pruebas
 
