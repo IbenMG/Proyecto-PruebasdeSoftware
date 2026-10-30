@@ -18,9 +18,7 @@ frontend/coverage/
 backend-test-results.xml
 reports/
 jenkins.sqlite3
-db.sqlite3
 .venv-ci/
-.local-logs/
 
 # Imágenes subidas en el entorno local
 media/
