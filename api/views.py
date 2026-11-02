@@ -8,8 +8,10 @@ from rest_framework.permissions import AllowAny, IsAuthenticated, BasePermission
 from rest_framework.response import Response
 from rest_framework.exceptions import PermissionDenied
 from django.shortcuts import get_object_or_404
+from django.db import transaction
+from django.db.models import F
 
-from .serializers import ActualizacionSerializer, RegistroSerializer
+from .serializers import ActualizacionSerializer, DonacionSerializer, RegistroSerializer
 
 
 # =======================
@@ -75,6 +77,35 @@ class CampaniaRetrieveUpdateView(generics.RetrieveUpdateAPIView):
     queryset = Campania.objects.all()
     serializer_class = CampaniaSerializer
     permission_classes = [EsCreadorOConsulta]
+
+
+class CampaniaDonarView(generics.GenericAPIView):
+    serializer_class = DonacionSerializer
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, pk):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        with transaction.atomic():
+            campania = get_object_or_404(
+                Campania.objects.select_for_update(), pk=pk
+            )
+            if campania.creador_id == request.user.pk:
+                raise PermissionDenied(
+                    'El creador no puede donar a su propia campaña.'
+                )
+
+            campania.progeso_financiero = (
+                F('progeso_financiero') + serializer.validated_data['monto']
+            )
+            campania.save(update_fields=['progeso_financiero'])
+            campania.refresh_from_db()
+
+        return Response(
+            CampaniaSerializer(campania, context={'request': request}).data,
+            status=status.HTTP_200_OK,
+        )
 
 
 class CampaniaDestroyView(generics.DestroyAPIView):

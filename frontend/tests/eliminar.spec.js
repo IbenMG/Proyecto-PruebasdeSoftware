@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-const API = 'http://localhost:8000/api';
+import { API } from './config.js';
 async function cuenta(request) {
   const suffix = `${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
   const datos = { username: `elim_${suffix}`, email: `elim_${suffix}@example.com`, password: 'ClaveEliminar-123!', fecha_nacimiento: '2000-01-15' };

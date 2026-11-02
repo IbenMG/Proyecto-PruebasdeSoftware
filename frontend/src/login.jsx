@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import './login.css';
 import Brand from './components/Brand.jsx';
+import { API_BASE } from './config.js';
 
 export default function Login({ onLoginSuccess, onRegistro, mensaje }) {
   const [email, setEmail] = useState('');
@@ -18,7 +19,7 @@ export default function Login({ onLoginSuccess, onRegistro, mensaje }) {
     setEnviando(true);
 
     try {
-      const response = await fetch('http://localhost:8000/api/token/', {
+      const response = await fetch(`${API_BASE}/token/`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),

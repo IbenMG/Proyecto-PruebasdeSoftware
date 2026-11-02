@@ -17,6 +17,10 @@ export default function CampaignDetail() {
   const [updateError, setUpdateError] = useState('');
   const [updatesError, setUpdatesError] = useState('');
   const [publishing, setPublishing] = useState(false);
+  const [donationAmount, setDonationAmount] = useState('');
+  const [donating, setDonating] = useState(false);
+  const [donationError, setDonationError] = useState('');
+  const [donationMessage, setDonationMessage] = useState('');
   const updatesRequestVersion = useRef(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -81,6 +85,36 @@ export default function CampaignDetail() {
     }
   }
 
+  async function donar(event) {
+    event.preventDefault();
+    const monto = donationAmount.trim();
+    if (!monto || !Number.isFinite(Number(monto)) || Number(monto) <= 0) {
+      setDonationError('El monto a donar debe ser mayor que cero.');
+      setDonationMessage('');
+      return;
+    }
+
+    setDonating(true);
+    setDonationError('');
+    setDonationMessage('');
+    try {
+      const updatedCampaign = await api.donateCampaign(id, { monto });
+      setCampaign(previous => ({ ...previous, ...updatedCampaign }));
+      setDonationAmount('');
+      setDonationMessage('Donación registrada correctamente.');
+    } catch (requestError) {
+      setDonationError(requestError.status === 401
+        ? 'Tu sesión expiró. Vuelve a iniciar sesión.'
+        : requestError.status === 403
+          ? 'El creador no puede donar a su propia campaña.'
+          : requestError.status === 400
+            ? 'El monto a donar debe ser válido y mayor que cero.'
+            : requestError.message);
+    } finally {
+      setDonating(false);
+    }
+  }
+
   function fechaPublicacion(value) {
     return new Date(value).toLocaleString('es-CL', {
       dateStyle: 'medium',
@@ -140,13 +174,38 @@ export default function CampaignDetail() {
           <p className="deadline">Fecha límite: {campaign.fecha_limite}</p>
         </div>
 
+        {campaign.puede_donar && (
+          <section className="donation-section" aria-labelledby="donation-title">
+            <h2 id="donation-title">Apoya esta campaña</h2>
+            <form className="donation-form" onSubmit={donar} noValidate>
+              <div className="field">
+                <label htmlFor="monto-donacion">Monto a donar</label>
+                <input id="monto-donacion" name="monto" type="number" min="0.01" step="0.01"
+                  value={donationAmount} disabled={donating}
+                  onChange={event => {
+                    setDonationAmount(event.target.value);
+                    setDonationError('');
+                    setDonationMessage('');
+                  }} />
+              </div>
+              <button type="submit" className="btn-submit" disabled={donating}>
+                {donating ? 'Donando...' : 'Donar'}
+              </button>
+            </form>
+            {donationError && <p className="error-msg" role="alert">{donationError}</p>}
+            {donationMessage && <p className="success-message" role="status">{donationMessage}</p>}
+          </section>
+        )}
+
         <section className="section">
           <h2>Descripción</h2>
           <p>{campaign.descripcion}</p>
         </section>
 
         <section className="section">
-          <h2>Información del creador</h2>
+          <h2>Información del creador{campaign.creador_username && (
+            <span className="creator-username"> — @{campaign.creador_username}</span>
+          )}</h2>
           <p>{campaign.informacion_creador}</p>
         </section>
 

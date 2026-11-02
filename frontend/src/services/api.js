@@ -1,4 +1,6 @@
-const API = 'http://localhost:8000/api';
+import { API_BASE } from '../config.js';
+
+const API = API_BASE;
 
 async function request(path, options = {}, publicRead = false) {
   const token = localStorage.getItem('access_token');
@@ -30,6 +32,10 @@ export const api = {
   getCampaigns: () => request('/campanias/', {}, true),
   getMyCampaigns: () => request('/campanias/mis/'),
   getCampaign: (id) => request(`/campanias/${id}/`, {}, true),
+  donateCampaign: (id, data) => request(`/campanias/${id}/donar/`, {
+    method: 'POST',
+    body: data,
+  }),
   createCampaign: (data) => request('/campanias/create/', { method: 'POST', body: data }),
   deleteCampaign: (id) => request(`/campanias/${id}/delete/`, { method: 'DELETE' }),
   updateCampaign: (id, data) => request(`/campanias/${id}/`, { method: 'PATCH', body: data }),

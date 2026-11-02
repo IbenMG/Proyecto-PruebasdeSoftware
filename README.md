@@ -22,10 +22,11 @@ La primera entrega implementa la gestión de usuarios y campañas:
 - Edición y eliminación de campañas por su propietario.
 - Confirmación antes de eliminar.
 - Visualización de la meta y del progreso de financiamiento almacenado.
+- Donaciones simuladas de usuarios distintos al creador.
 - Persistencia de datos en PostgreSQL.
 - Interfaz adaptable a distintos tamaños de pantalla.
 
-**Fuera del alcance actual:** procesamiento de pagos y registro de aportes monetarios reales. La visualización del progreso no implica que exista un flujo de donaciones implementado.
+**Fuera del alcance actual:** procesamiento de pagos reales y registro de transacciones monetarias. La donación disponible es simulada: valida un monto y lo suma al progreso financiero de la campaña.
 
 La búsqueda utiliza coincidencias de texto en el título; no implementa un motor de búsqueda semántica.
 
@@ -44,6 +45,7 @@ La búsqueda utiliza coincidencias de texto en el título; no implementa un moto
 | Mis campañas | Listado de las campañas pertenecientes al usuario autenticado |
 | Buscar campañas | Búsqueda por el nombre de una campaña |
 | Ver detalle | Consulta de descripción, categoría, creador, meta, progreso y fecha límite |
+| Donar | Un usuario distinto al creador puede registrar una donación simulada |
 | Editar campaña | Modificación de una campaña por su propietario |
 | Eliminar campaña | Eliminación por su propietario, previa confirmación |
 
@@ -195,7 +197,7 @@ python -m venv .venv
 $env:DB_NAME = "crowdstarter"
 
 .\.venv\Scripts\python.exe manage.py migrate
-.\.venv\Scripts\python.exe manage.py runserver
+.\.venv\Scripts\python.exe manage.py runserver 127.0.0.1:8001
 ```
 
 No es necesario activar el entorno al utilizar directamente su ejecutable de Python.
@@ -212,7 +214,7 @@ python -m pip install -r requirements.txt
 export DB_NAME=crowdstarter
 
 python manage.py migrate
-python manage.py runserver
+python manage.py runserver 127.0.0.1:8001
 ```
 
 En algunas distribuciones puede ser necesario instalar el paquete del sistema que proporciona `venv`.
@@ -241,8 +243,11 @@ npm run dev
 
 Acceder a:
 
-- Aplicación: http://localhost:5173
-- Backend: http://127.0.0.1:8000
+- Aplicación: http://localhost:5174
+- Backend: http://127.0.0.1:8001
+
+En Jenkins y GitHub Actions, el entorno CI conserva los puertos 5173 (frontend)
+y 8000 (backend) para ejecutar las pruebas E2E de forma aislada.
 
 Mantener ambas terminales abiertas. Para detener los servidores, utilizar `Ctrl+C`.
 
@@ -339,7 +344,7 @@ La suite funcional incluye 18 pruebas:
 Para ejecutarlas:
 
 1. Iniciar PostgreSQL.
-2. Levantar Django en el puerto 8000.
+2. Levantar Django en el puerto 8001.
 3. Ejecutar Playwright desde `frontend`; Vite se inicia automáticamente mediante `playwright.config.js`.
 
 #### Windows — Brave
