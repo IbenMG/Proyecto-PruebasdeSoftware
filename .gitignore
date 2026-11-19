@@ -24,3 +24,9 @@ jenkins.sqlite3
 # Imágenes subidas en el entorno local
 media/
 /db.sqlite3
+
+#Cosas de Playwright 
+node_modules/
+test-results/
+playwright-report/
+playwright/.cache/
