@@ -70,6 +70,10 @@ pipeline {
         }
 
         stage('E2E: Chromium') {
+            environment {
+            CI = 'true'
+            BASE_URL = 'http://localhost:5173'
+            }
             steps {
                 sh '''
                     set -eu

@@ -5,7 +5,7 @@ export const API = process.env.TEST_API_URL || (
   isCI ? 'http://localhost:8000/api' : 'http://localhost:8001/api'
 );
 
-export const BASE_URL = process.env.TEST_BASE_URL || (
+export const BASE_URL = process.env.BASE_URL || process.env.TEST_BASE_URL || (
   isCI ? 'http://localhost:5173' : 'http://localhost:5174'
 );
 

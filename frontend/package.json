@@ -9,7 +9,7 @@
     "lint": "eslint .",
     "test:unit": "node --test unit/buscarCampanias.test.js unit/checkpoints.test.js unit/actualizaciones.test.js",
     "test:unit:coverage": "c8 --reporter=text --reporter=lcov --check-coverage --lines=80 --functions=80 --branches=70 --statements=80 --include=src/utils/*.js node --test unit/buscarCampanias.test.js unit/checkpoints.test.js unit/actualizaciones.test.js",
-    "test:e2e": "playwright test tests/registro.spec.js tests/login.spec.js tests/campanias.spec.js tests/busqueda.spec.js tests/eliminar.spec.js tests/entrega2.spec.js --project=chromium",
+    "test:e2e": "playwright test --project=chromium",
     "preview": "vite preview"
   },
   "dependencies": {
