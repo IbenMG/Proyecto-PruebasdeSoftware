@@ -1,5 +1,5 @@
 # CrowdStarter
-
+ 
 Plataforma web de crowdfunding desarrollada para la asignatura **INF331 — Pruebas de Software** de la Universidad Técnica Federico Santa María.
 
 ## Objetivo
@@ -22,12 +22,18 @@ La primera entrega implementa la gestión de usuarios y campañas:
 - Edición y eliminación de campañas por su propietario.
 - Confirmación antes de eliminar.
 - Visualización de la meta y del progreso de financiamiento almacenado.
+- Donaciones simuladas de usuarios distintos al creador.
 - Persistencia de datos en PostgreSQL.
 - Interfaz adaptable a distintos tamaños de pantalla.
 
-**Fuera del alcance actual:** procesamiento de pagos y registro de aportes monetarios reales. La visualización del progreso no implica que exista un flujo de donaciones implementado.
+**Fuera del alcance actual:** procesamiento de pagos reales y registro de transacciones monetarias. La donación disponible es simulada: valida un monto y lo suma al progreso financiero de la campaña.
 
 La búsqueda utiliza coincidencias de texto en el título; no implementa un motor de búsqueda semántica.
+
+## Funcionalidades de la Entrega 2
+
+- **Hitos y metas graduales:** los creadores pueden definir checkpoints con monto objetivo y descripción. La aplicación los ordena por monto y calcula automáticamente si están alcanzados según el progreso financiero.
+- **Muro de actualizaciones:** los propietarios pueden publicar novedades de sus campañas. Las actualizaciones son visibles públicamente y se ordenan desde la más reciente a la más antigua.
 
 ## Funcionalidades implementadas
 
@@ -39,6 +45,7 @@ La búsqueda utiliza coincidencias de texto en el título; no implementa un moto
 | Mis campañas | Listado de las campañas pertenecientes al usuario autenticado |
 | Buscar campañas | Búsqueda por el nombre de una campaña |
 | Ver detalle | Consulta de descripción, categoría, creador, meta, progreso y fecha límite |
+| Donar | Un usuario distinto al creador puede registrar una donación simulada |
 | Editar campaña | Modificación de una campaña por su propietario |
 | Eliminar campaña | Eliminación por su propietario, previa confirmación |
 
@@ -73,11 +80,12 @@ La búsqueda utiliza coincidencias de texto en el título; no implementa un moto
 | Autenticación | Simple JWT | Emisión y validación de tokens |
 | Imágenes | Pillow | Soporte de imágenes en Django |
 | Pruebas del backend | pytest + pytest-django | Pruebas de integración |
-| Pruebas unitarias | Node.js Test Runner | Verificación aislada de la búsqueda |
+| Pruebas unitarias | Node.js Test Runner + pytest-cov | Verificación aislada y cobertura de reglas de negocio |
 | Pruebas E2E | Playwright | Verificación de flujos desde el navegador |
 | Control de versiones | Git / GitHub | Ramas, revisión e integración de cambios |
+| CI/CD | GitHub Actions + Jenkins | Validación automática, artefactos y notificaciones |
 
-La automatización de pruebas mediante GitHub Actions se contempla como mejora del proceso. La ejecución local se describe más adelante.
+La automatización se ejecuta mediante GitHub Actions y también está preparada para Jenkins. El pipeline valida backend, frontend y E2E, conserva reportes y genera artefactos para un despliegue posterior.
 
 ## Arquitectura general
 
@@ -115,6 +123,10 @@ frontend/
     package.json              Dependencias y scripts
     package-lock.json         Versiones resueltas del frontend
     playwright.config.js      Configuración de pruebas E2E
+
+.github/workflows/ci.yml      Pipeline de GitHub Actions
+Jenkinsfile                   Pipeline declarativo de Jenkins
+.coveragerc                   Configuración de cobertura del backend
 
 docs/                         Documentación de funcionalidades y usabilidad
 manage.py                     Administración de Django
@@ -185,7 +197,7 @@ python -m venv .venv
 $env:DB_NAME = "crowdstarter"
 
 .\.venv\Scripts\python.exe manage.py migrate
-.\.venv\Scripts\python.exe manage.py runserver
+.\.venv\Scripts\python.exe manage.py runserver 127.0.0.1:8001
 ```
 
 No es necesario activar el entorno al utilizar directamente su ejecutable de Python.
@@ -202,7 +214,7 @@ python -m pip install -r requirements.txt
 export DB_NAME=crowdstarter
 
 python manage.py migrate
-python manage.py runserver
+python manage.py runserver 127.0.0.1:8001
 ```
 
 En algunas distribuciones puede ser necesario instalar el paquete del sistema que proporciona `venv`.
@@ -231,8 +243,11 @@ npm run dev
 
 Acceder a:
 
-- Aplicación: http://localhost:5173
-- Backend: http://127.0.0.1:8000
+- Aplicación: http://localhost:5174
+- Backend: http://127.0.0.1:8001
+
+En Jenkins y GitHub Actions, el entorno CI conserva los puertos 5173 (frontend)
+y 8000 (backend) para ejecutar las pruebas E2E de forma aislada.
 
 Mantener ambas terminales abiertas. Para detener los servidores, utilizar `Ctrl+C`.
 
@@ -244,7 +259,7 @@ Las pruebas se organizan a partir de las historias de usuario y sus criterios de
 
 | Nivel | Herramienta | Alcance |
 |---|---|---|
-| Unitarias | Node.js Test Runner | Función de búsqueda aislada |
+| Unitarias | Node.js Test Runner + pytest | Búsqueda, checkpoints, actualizaciones y reglas de serializers aisladas |
 | Integración | pytest + pytest-django | API, validaciones, permisos y persistencia |
 | Extremo a extremo | Playwright | Flujos completos desde el navegador |
 
@@ -257,22 +272,31 @@ Las pruebas se organizan a partir de las historias de usuario y sus criterios de
 
 Usar pytest no convierte automáticamente una prueba en unitaria. Las pruebas de la API se clasifican como integración porque involucran distintos componentes y una base de datos de pruebas.
 
-### Pruebas unitarias de búsqueda
+### Pruebas unitarias del frontend
 
-Se implementaron cuatro casos:
+La suite del frontend contiene 29 casos sin backend ni navegador:
 
-1. Coincidencia exacta antes de coincidencias parciales, contemplando mayúsculas y tildes.
-2. Consulta vacía.
-3. Consulta sin coincidencias.
-4. Búsqueda limitada al título.
+- Búsqueda por nombre: normalización, coincidencias exactas/parciales, empates y no mutación de la lista.
+- Checkpoints: orden, límites de monto y estado según progreso.
+- Actualizaciones: validación de título/contenido y orden cronológico.
 
 Desde `frontend`, en Windows o Linux:
 
 ```bash
-node --test unit/buscarCampanias.test.js
+npm run test:unit
 ```
 
 No requieren backend, navegador ni base de datos.
+
+### Pruebas unitarias del backend
+
+`api/test_unit_serializers.py` contiene 26 casos aislados para validaciones de checkpoints, actualizaciones, campañas, registro y login. No utiliza una base de datos; las consultas de autenticación se reemplazan por mocks.
+
+Desde la raíz:
+
+```bash
+python -m pytest api/test_unit_serializers.py --ds=config.settings -q
+```
 
 ### Pruebas de integración del backend
 
@@ -305,7 +329,7 @@ El total actualizado de casos se muestra en la salida de pytest.
 
 ### Pruebas E2E
 
-La suite funcional incluye 16 pruebas:
+La suite funcional incluye 18 pruebas:
 
 | Área | Cantidad |
 |---|---:|
@@ -314,21 +338,21 @@ La suite funcional incluye 16 pruebas:
 | Campañas | 3 |
 | Eliminación | 3 |
 | Búsqueda | 3 |
-| **Total** | **16** |
+| Entrega 2 | 2 |
+| **Total** | **18** |
 
 Para ejecutarlas:
 
 1. Iniciar PostgreSQL.
-2. Levantar Django en el puerto 8000.
-3. Levantar Vite en el puerto 5173.
-4. Ejecutar Playwright desde `frontend`.
+2. Levantar Django en el puerto 8001.
+3. Ejecutar Playwright desde `frontend`; Vite se inicia automáticamente mediante `playwright.config.js`.
 
 #### Windows — Brave
 
 Brave debe estar instalado en la ruta indicada en `playwright.config.js`.
 
 ```powershell
-npx.cmd playwright test tests/registro.spec.js tests/login.spec.js tests/campanias.spec.js tests/busqueda.spec.js tests/eliminar.spec.js --project=brave --headed --workers=1 --reporter=list,html
+npx.cmd playwright test tests/registro.spec.js tests/login.spec.js tests/campanias.spec.js tests/busqueda.spec.js tests/eliminar.spec.js tests/entrega2.spec.js --project=brave --headed --workers=1 --reporter=list,html
 ```
 
 Para abrir el reporte:
@@ -350,7 +374,7 @@ npx playwright install --with-deps chromium
 Ejecutar la suite:
 
 ```bash
-npx playwright test tests/registro.spec.js tests/login.spec.js tests/campanias.spec.js tests/busqueda.spec.js tests/eliminar.spec.js --project=chromium --headed --workers=1 --reporter=list,html
+npx playwright test tests/registro.spec.js tests/login.spec.js tests/campanias.spec.js tests/busqueda.spec.js tests/eliminar.spec.js tests/entrega2.spec.js --project=chromium --headed --workers=1 --reporter=list,html
 ```
 
 Para abrir el reporte:
@@ -379,6 +403,22 @@ npm.cmd run build
 npm run build
 ```
 
+## CI/CD de la Entrega 2
+
+El proyecto cuenta con dos entradas para integración continua:
+
+- `.github/workflows/ci.yml`: se ejecuta en `push` y pull requests de `develop`, `main` y `master`.
+- `Jenkinsfile`: replica las validaciones en un pipeline Jenkins y publica reportes, artefactos y notificaciones Slack si están configuradas.
+
+Las etapas son:
+
+1. Pruebas backend con PostgreSQL en GitHub Actions o SQLite aislado en Jenkins.
+2. Pruebas unitarias frontend con cobertura, lint y build.
+3. Pruebas E2E con Django, Vite y Playwright Chromium.
+4. Publicación de cobertura, reportes JUnit, reporte HTML de Playwright y `frontend/dist/`.
+
+El alcance de CD de esta entrega genera artefactos listos para despliegue. No se incluye publicación en una nube externa. La configuración de Jenkins, GitHub Webhook, ngrok y Slack está documentada en [docs/CI-CD.md](docs/CI-CD.md).
+
 ## Integrantes
 
 | Integrante | Rol académico | Responsabilidad principal |
@@ -405,6 +445,10 @@ Antes de integrar cambios, ejecutar las pruebas relacionadas y comprobar que las
 - [Wiki](https://github.com/IbenMG/Proyecto-PruebasdeSoftware)
 - [Releases](https://github.com/IbenMG/Proyecto-PruebasdeSoftware/releases)
 - [Documentación del proyecto](docs/)
+- [HU-06: Hitos y metas graduales](docs/HU06.md)
+- [HU-07: Muro de actualizaciones](docs/HU07.md)
+- [Pruebas unitarias](docs/pruebas-unitarias.md)
+- [CI/CD de la Entrega 2](docs/CI-CD.md)
 - [Decisiones de usabilidad](docs/usabilidad-interfaz.md)
 
 **Video de la Entrega 1:** 
@@ -427,6 +471,15 @@ Antes de integrar cambios, ejecutar las pruebas relacionadas y comprobar que las
 - [x] Incorporar el enlace al video.
 - [x] Confirmar la publicación de la release `v1.0-entrega1`.
 
+### Entrega 2
+
+- [x] Implementar checkpoints y metas graduales.
+- [x] Implementar muro de actualizaciones.
+- [x] Ampliar pruebas unitarias, integración y E2E.
+- [x] Configurar pipeline reproducible de GitHub Actions.
+- [x] Preparar pipeline Jenkins con reportes y artefactos.
+- [x] Documentar integración GitHub, Jenkins, ngrok y Slack.
+- [x] Incorporar cobertura con umbrales mínimos.
 ***
 ### Entrega 2 — Integración y Entrega Continua de CrowdStarter
 
@@ -849,4 +902,3 @@ La Entrega 2 incorpora un proceso de integración continua que valida el backend
 Los requerimientos HU06 y HU07 cuentan con implementación en backend y frontend, además de pruebas unitarias, de integración y E2E. El pipeline conserva artefactos y reportes para una entrega posterior, aunque todavía no realiza un despliegue automático en la nube.
 
 La principal dificultad fue conectar servicios externos con Jenkins local. Esta situación se resolvió publicando Jenkins mediante ngrok y configurando el webhook de GitHub. Una vez que el webhook inicia correctamente el pipeline, Jenkins puede enviar a Slack el estado final de la ejecución.
-

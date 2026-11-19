@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
+import { API } from './config.js';
 
-const API = 'http://localhost:8000/api';
 const fechaChile = (offset = 0) => new Intl.DateTimeFormat('sv-SE', {
   timeZone: 'America/Santiago', year: 'numeric', month: '2-digit', day: '2-digit',
 }).format(new Date(Date.now() + offset * 86400000));
@@ -17,7 +17,7 @@ async function cuenta(request) {
     data: { email: datos.email, password: datos.password },
   });
   expect(login.status()).toBe(200);
-  return login.json();
+  return { ...(await login.json()), username: datos.username };
 }
 
 async function sesion(page, request) {
@@ -93,6 +93,38 @@ test('campos vacíos, meta y fecha inválidas bloquean el envío', async ({ page
   await expect(page.getByText('La fecha límite no puede ser anterior al día actual.', { exact: true })).toBeVisible();
   await expect(page.getByLabel('Meta de financiamiento')).toHaveAttribute('aria-invalid', 'true');
   expect(publicaciones).toBe(0);
+});
+
+test('otro usuario puede hacer una donación simulada y ve el creador', async ({ page, request }) => {
+  const creador = await sesion(page, request);
+  const donante = await cuenta(request);
+  const titulo = `Donación ${Date.now()}`;
+  const response = await request.post(`${API}/campanias/create/`, {
+    headers: { Authorization: `Bearer ${creador.access}` },
+    data: datosCampania(titulo),
+  });
+  expect(response.status()).toBe(201);
+  const campaign = await response.json();
+
+  await page.addInitScript(({ access, refresh }) => {
+    localStorage.setItem('access_token', access);
+    localStorage.setItem('refresh_token', refresh);
+  }, donante);
+  await page.goto(`/campaigns/${campaign.id}`);
+
+  await expect(page.getByRole('heading', { name: new RegExp(`Información del creador.*@${creador.username}`) })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Donar', exact: true })).toBeVisible();
+  await page.getByLabel('Monto a donar').fill('25');
+  await page.getByRole('button', { name: 'Donar', exact: true }).click();
+  await expect(page.getByRole('status')).toHaveText('Donación registrada correctamente.');
+  await expect(page.locator('.progress-header')).toContainText('25');
+
+  await page.addInitScript(({ access, refresh }) => {
+    localStorage.setItem('access_token', access);
+    localStorage.setItem('refresh_token', refresh);
+  }, creador);
+  await page.goto(`/campaigns/${campaign.id}`);
+  await expect(page.getByRole('button', { name: 'Donar', exact: true })).toHaveCount(0);
 });
 
 test('HU04: listar todas las campañas propias y abrir su detalle', async ({ page, request }) => {

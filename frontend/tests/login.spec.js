@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { BASE_URL } from './config.js';
 
 test('correo inválido impide el envío', async ({ page }) => {
   await page.goto('/');
@@ -6,7 +7,7 @@ test('correo inválido impide el envío', async ({ page }) => {
   await page.getByLabel('Contraseña', { exact: true }).fill('ClavePrueba!');
   await page.getByRole('button', { name: 'Iniciar Sesión', exact: true }).click();
   expect(await page.getByLabel('Correo electrónico').evaluate(input => input.checkValidity())).toBe(false);
-  await expect(page).toHaveURL('http://localhost:5173/');
+  await expect(page).toHaveURL(`${BASE_URL}/`);
 });
 
 test('contraseña en blanco impide el envío', async ({ page }) => {
@@ -23,5 +24,5 @@ test('correo inexistente recibe el error genérico', async ({ page }) => {
   await page.getByLabel('Contraseña', { exact: true }).fill('ClavePrueba!');
   await page.getByRole('button', { name: 'Iniciar Sesión', exact: true }).click();
   await expect(page.getByRole('alert')).toHaveText('Correo o contraseña incorrectos');
-  await expect(page).toHaveURL('http://localhost:5173/');
+  await expect(page).toHaveURL(`${BASE_URL}/`);
 });

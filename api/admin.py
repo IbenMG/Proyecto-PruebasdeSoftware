@@ -1,3 +1,4 @@
 from django.contrib import admin
+from .models import Actualizacion, Campania, Checkpoint, PerfilUsuario
 
-# Register your models here.
+admin.site.register([Campania, Checkpoint, Actualizacion, PerfilUsuario])

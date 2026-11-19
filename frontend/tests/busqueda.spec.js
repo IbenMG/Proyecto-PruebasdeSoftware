@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
+import { API } from './config.js';
 
-const API = 'http://localhost:8000/api';
 let tokens;
 let exacta;
 let parcial;
