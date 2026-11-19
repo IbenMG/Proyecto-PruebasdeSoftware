@@ -73,12 +73,12 @@ pipeline {
             environment {
             CI = 'true'
             BASE_URL = 'http://localhost:5173'
+            DB_NAME="$WORKSPACE/jenkins.sqlite3"
             }
             steps {
                 sh '''
                     set -eu
                     . .venv-ci/bin/activate
-                    export DB_NAME="$WORKSPACE/jenkins.sqlite3"
                     python manage.py migrate --noinput
                     nohup python manage.py runserver 127.0.0.1:8000 > reports/django.log 2>&1 &
                     echo $! > reports/django.pid
@@ -106,7 +106,7 @@ pipeline {
             sh 'if [ -f reports/django.pid ]; then kill "$(cat reports/django.pid)" 2>/dev/null || true; fi'
             junit testResults: 'reports/*.xml, frontend/test-results/*.xml', allowEmptyResults: true
             archiveArtifacts(
-                artifacts: 'reports/**/*, coverage.xml, htmlcov/**/*, frontend/dist/**/*, frontend/playwright-report/**/*, frontend/test-results/**/*',
+                artifacts: 'reports/**/*, coverage.xml, htmlcov/**/*, frontend/dist/**/*, frontend/playwright-report/**/*, frontend/test-results/**/*, frontend/coverage/**/*',
                 allowEmptyArchive: true,
                 fingerprint: true
             )
