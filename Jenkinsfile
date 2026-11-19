@@ -23,6 +23,7 @@ pipeline {
     environment {
         CI = 'true'
         DB_ENGINE = 'django.db.backends.sqlite3'
+        DJANGO_SECRET_KEY = 'ci-only-not-for-production-crowdstarter-tests'
     }
 
     stages {

@@ -20,8 +20,6 @@ from django.conf.urls.static import static
 from django.urls import include, path
 from rest_framework_simplejwt.views import TokenRefreshView
 from api.views import RegistroView, LoginCorreoView, MisCampaniasView
-
-from api.views import UsuarioCreateView, UsuarioListView, UsuarioRetrieveUpdateView, UsuarioDestroyView
 from api.views import CampaniaCreateView, CampaniaListView, CampaniaRetrieveUpdateView, CampaniaDonarView, CampaniaDestroyView, CampaniaActualizacionesView
 
 urlpatterns = [
@@ -31,12 +29,6 @@ urlpatterns = [
     path('api/token/', LoginCorreoView.as_view(), name='token_obtain_pair'),
     path('api/token', LoginCorreoView.as_view(), name='token_obtain_pair_legacy'),
     path('api/token/refresh', TokenRefreshView.as_view(), name='token_refresh'),
-
-    path('api/usuarios/create/', UsuarioCreateView.as_view(), name='usuario-create'),
-    path('api/usuarios/', UsuarioListView.as_view(), name='usuario-list'),
-    path('api/usuarios/<int:pk>/', UsuarioRetrieveUpdateView.as_view(), name='usuario-detail'),
-    path('api/usuarios/<int:pk>/delete/', UsuarioDestroyView.as_view(), name='usuario-delete'),
-
     path('api/campanias/create/', CampaniaCreateView.as_view(), name='campania-create'),
     path('api/campanias/mis/', MisCampaniasView.as_view(), name='mis-campanias'),
     path('api/campanias/', CampaniaListView.as_view(), name='campania-list'),

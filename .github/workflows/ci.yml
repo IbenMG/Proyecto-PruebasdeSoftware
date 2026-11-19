@@ -12,6 +12,7 @@ permissions:
 env:
   PYTHON_VERSION: '3.12'
   NODE_VERSION: '24'
+  DJANGO_SECRET_KEY: 'ci-only-not-for-production-crowdstarter-tests'
 
 jobs:
   backend:
