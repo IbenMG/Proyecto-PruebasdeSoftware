@@ -95,6 +95,8 @@ def test_detalle_publico_y_financiamiento(campania):
     response = APIClient().get(f'/api/campanias/{campania.pk}/')
     assert response.status_code == 200
     assert response.data['titulo'] == campania.titulo
+    assert response.data['creador_username'] == campania.creador.username
+    assert response.data['puede_donar'] is False
     assert Decimal(response.data['progeso_financiero']) == Decimal('25000')
     assert response.data['puede_editar'] is False
 
@@ -123,6 +125,63 @@ def test_otro_no_puede_editar_ni_eliminar(campania, otro):
     assert client.delete(f'/api/campanias/{campania.pk}/delete/').status_code == 403
     campania.refresh_from_db()
     assert campania.titulo != 'Ajeno'
+
+
+def test_otro_puede_donar_y_se_suma_al_progreso(campania, otro):
+    campania.progeso_financiero = Decimal('25.00')
+    campania.save(update_fields=['progeso_financiero'])
+    client = APIClient()
+    client.force_authenticate(otro)
+
+    response = client.post(
+        f'/api/campanias/{campania.pk}/donar/',
+        {'monto': '12.50'},
+        format='json',
+    )
+
+    assert response.status_code == 200
+    campania.refresh_from_db()
+    assert campania.progeso_financiero == Decimal('37.50')
+    assert Decimal(response.data['progeso_financiero']) == Decimal('37.50')
+    assert response.data['puede_donar'] is True
+
+
+def test_creador_no_puede_donar_a_su_campania(cliente, campania):
+    response = cliente.post(
+        f'/api/campanias/{campania.pk}/donar/',
+        {'monto': '10'},
+        format='json',
+    )
+
+    assert response.status_code == 403
+    campania.refresh_from_db()
+    assert campania.progeso_financiero == Decimal('0')
+
+
+@pytest.mark.parametrize('monto', ['0', '-1', 'abc'])
+def test_donacion_rechaza_monto_invalido(campania, otro, monto):
+    client = APIClient()
+    client.force_authenticate(otro)
+
+    response = client.post(
+        f'/api/campanias/{campania.pk}/donar/',
+        {'monto': monto},
+        format='json',
+    )
+
+    assert response.status_code == 400
+    campania.refresh_from_db()
+    assert campania.progeso_financiero == Decimal('0')
+
+
+def test_donacion_requiere_login(campania):
+    response = APIClient().post(
+        f'/api/campanias/{campania.pk}/donar/',
+        {'monto': '10'},
+        format='json',
+    )
+
+    assert response.status_code == 401
 
 
 def test_edicion_valida_campos(cliente, campania):

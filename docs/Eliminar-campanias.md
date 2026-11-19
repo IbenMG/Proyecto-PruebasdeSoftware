@@ -9,6 +9,6 @@ Completa la operación Delete del CRUD solicitado en Entrega 1.
 - Ante un error se conserva la vista y se muestra un mensaje.
 - El backend exige autenticación y propiedad de la campaña.
 
-No hay nuevas dependencias ni migraciones. La eliminación es definitiva del registro; el tratamiento de aportes queda fuera del alcance actual. El endpoint existente no elimina automáticamente el archivo de imagen del almacenamiento.
+No hay nuevas dependencias ni migraciones. La eliminación es definitiva del registro; el total de donaciones simuladas se elimina junto con la campaña. El endpoint existente no elimina automáticamente el archivo de imagen del almacenamiento.
 
 Pruebas: api/test_campanias.py y frontend/tests/eliminar.spec.js.

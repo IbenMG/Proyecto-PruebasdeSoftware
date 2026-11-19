@@ -14,6 +14,7 @@ from api.serializers import (
     ActualizacionSerializer,
     CampaniaSerializer,
     CheckpointSerializer,
+    DonacionSerializer,
     LoginCorreoSerializer,
     RegistroSerializer,
 )
@@ -119,8 +120,25 @@ def test_campania_serializer_calcula_permiso_del_propietario():
     serializer = CampaniaSerializer(context={'request': request})
 
     assert serializer.get_puede_editar(campania) is True
+    assert serializer.get_puede_donar(campania) is False
     request.user.pk = 8
     assert serializer.get_puede_editar(campania) is False
+    assert serializer.get_puede_donar(campania) is True
+
+
+@pytest.mark.parametrize('monto', [Decimal('0'), Decimal('-1')])
+def test_donacion_serializer_rechaza_monto_no_positivo(monto):
+    serializer = DonacionSerializer(data={'monto': monto})
+
+    assert not serializer.is_valid()
+    assert 'monto' in serializer.errors
+
+
+def test_donacion_serializer_acepta_monto_positivo():
+    serializer = DonacionSerializer(data={'monto': '12.50'})
+
+    assert serializer.is_valid(), serializer.errors
+    assert serializer.validated_data['monto'] == Decimal('12.50')
 
 
 def test_campania_serializer_valida_meta_positiva():

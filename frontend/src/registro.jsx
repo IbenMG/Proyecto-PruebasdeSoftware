@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import './login.css';
 import Brand from './components/Brand.jsx';
+import { API_BASE } from './config.js';
 
 const campos = [
   ['username', 'Nombre de usuario', 'text'],
@@ -55,7 +56,7 @@ export default function Registro({ onRegistroSuccess, onVolver }) {
     setEnviando(true);
 
     try {
-      const response = await fetch('http://localhost:8000/api/registro/', {
+      const response = await fetch(`${API_BASE}/registro/`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(datos),

@@ -151,7 +151,7 @@ npm run lint
 npm run build
 ```
 
-Para E2E se debe iniciar Django en `8000` y ejecutar desde `frontend`:
+Para E2E local se debe iniciar Django en `8001` y ejecutar desde `frontend`:
 
 ```bash
 npx playwright install chromium
@@ -159,6 +159,9 @@ npm run test:e2e
 ```
 
 El servidor Vite se inicia automáticamente por la configuración de Playwright. Django debe estar disponible antes de iniciar la suite.
+
+En Jenkins y GitHub Actions, la variable `CI` hace que Vite utilice el puerto
+`5173` y que el frontend apunte al backend en `8000`.
 
 ## Evidencias para la entrega
 

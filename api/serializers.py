@@ -1,4 +1,5 @@
 import json
+from decimal import Decimal
 
 from rest_framework import serializers
 from rest_framework.exceptions import AuthenticationFailed
@@ -71,8 +72,21 @@ class ActualizacionSerializer(serializers.ModelSerializer):
         return value
 
 
+class DonacionSerializer(serializers.Serializer):
+    monto = serializers.DecimalField(max_digits=10, decimal_places=2)
+
+    def validate_monto(self, value):
+        if value < Decimal('0.01'):
+            raise serializers.ValidationError(
+                'El monto a donar debe ser mayor que cero.'
+            )
+        return value
+
+
 class CampaniaSerializer(serializers.ModelSerializer):
     puede_editar = serializers.SerializerMethodField()
+    puede_donar = serializers.SerializerMethodField()
+    creador_username = serializers.SerializerMethodField()
     quitar_imagen = serializers.BooleanField(write_only=True, required=False, default=False)
     checkpoints = CheckpointSerializer(many=True, required=False)
 
@@ -81,10 +95,14 @@ class CampaniaSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'titulo', 'descripcion', 'categoria', 'imagenes',
             'meta_financiera', 'fecha_limite', 'informacion_creador',
-            'progeso_financiero', 'creador', 'puede_editar', 'quitar_imagen',
+            'progeso_financiero', 'creador', 'creador_username',
+            'puede_editar', 'puede_donar', 'quitar_imagen',
             'checkpoints',
         ]
-        read_only_fields = ['progeso_financiero', 'creador']
+        read_only_fields = [
+            'progeso_financiero', 'creador', 'creador_username',
+            'puede_editar', 'puede_donar',
+        ]
         extra_kwargs = {'imagenes': {'required': False}}
 
     def to_internal_value(self, data):
@@ -156,6 +174,14 @@ class CampaniaSerializer(serializers.ModelSerializer):
         request = self.context.get('request')
         return bool(request and request.user.is_authenticated
                     and obj.creador_id == request.user.pk)
+
+    def get_puede_donar(self, obj):
+        request = self.context.get('request')
+        return bool(request and request.user.is_authenticated
+                    and obj.creador_id != request.user.pk)
+
+    def get_creador_username(self, obj):
+        return obj.creador.username if obj.creador else None
 
     def validate_meta_financiera(self, value):
         if value <= 0:
