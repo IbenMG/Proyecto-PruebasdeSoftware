@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { api } from '../services/api.js';
+import CampaignCard from '../components/CampaignCard.jsx';
 import './campaigns.css';
 
 export default function MyCampaigns() {
@@ -38,19 +39,7 @@ export default function MyCampaigns() {
         </div>
       ) : (
         <div className="campaigns-grid">
-          {campaigns.map(c => (
-            <Link to={`/campaigns/${c.id}`} key={c.id} className="campaign-card">
-              {c.imagenes ? <img className="card-cover" src={c.imagenes} alt="" /> : <div className="card-placeholder" aria-hidden="true">↗</div>}
-              <span className="category-badge">{c.categoria}</span>
-              <h3>{c.titulo}</h3>
-              <p className="meta">Meta: ${Number(c.meta_financiera).toLocaleString()}</p>
-              <div className="progress">
-                <div className="progress-bar" style={{ width: `${Math.min(100, (c.progeso_financiero / c.meta_financiera) * 100)}%` }}></div>
-              </div>
-              <p className="progress-text">${Number(c.progeso_financiero).toLocaleString()} de ${Number(c.meta_financiera).toLocaleString()}</p>
-              <p className="deadline">Fecha límite: {c.fecha_limite}</p>
-            </Link>
-          ))}
+          {campaigns.map(campaign => <CampaignCard campaign={campaign} key={campaign.id} />)}
         </div>
       ))}
     </div>

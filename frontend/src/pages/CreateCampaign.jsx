@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { api } from '../services/api.js';
+import { validarCheckpoint } from '../utils/checkpoints.js';
 import './campaigns.css';
 
 const campos = [
@@ -12,6 +13,7 @@ const campos = [
   ['informacion_creador', 'Información del creador', 'textarea'],
 ];
 const valoresIniciales = Object.fromEntries(campos.map(([name]) => [name, '']));
+const checkpointVacio = () => ({ titulo: '', descripcion: '', monto_objetivo: '' });
 const hoyEnChile = () => new Intl.DateTimeFormat('sv-SE', {
   timeZone: 'America/Santiago', year: 'numeric', month: '2-digit', day: '2-digit',
 }).format(new Date());
@@ -24,6 +26,9 @@ export default function CreateCampaign({ editar = false }) {
   const [imagen, setImagen] = useState(null);
   const [imagenActual, setImagenActual] = useState('');
   const [quitarImagen, setQuitarImagen] = useState(false);
+  const [checkpoints, setCheckpoints] = useState([]);
+  const [savedCheckpoints, setSavedCheckpoints] = useState([]);
+  const [checkpointErrors, setCheckpointErrors] = useState([]);
   const [errors, setErrors] = useState({});
   const [submitError, setSubmitError] = useState('');
   const [enviando, setEnviando] = useState(false);
@@ -43,6 +48,13 @@ export default function CreateCampaign({ editar = false }) {
       setForm(Object.fromEntries(campos.map(([name]) => [name, String(data[name] ?? '')])));
       setSavedForm(Object.fromEntries(campos.map(([name]) => [name, String(data[name] ?? '')])));
       setImagenActual(data.imagenes || '');
+      const checkpointsIniciales = (data.checkpoints || []).map(({ titulo, descripcion, monto_objetivo }) => ({
+        titulo: String(titulo ?? ''),
+        descripcion: String(descripcion ?? ''),
+        monto_objetivo: String(monto_objetivo ?? ''),
+      }));
+      setCheckpoints(checkpointsIniciales);
+      setSavedCheckpoints(checkpointsIniciales);
     }).catch(() => {
       if (activo) setSubmitError('No se pudo cargar la campaña.');
     }).finally(() => {
@@ -69,25 +81,56 @@ export default function CreateCampaign({ editar = false }) {
   }
 
   function confirmarSalida(event) {
-    const changed = campos.some(([name]) => form[name] !== savedForm[name]) || imagen || quitarImagen;
+    const changed = campos.some(([name]) => form[name] !== savedForm[name])
+      || JSON.stringify(checkpoints) !== JSON.stringify(savedCheckpoints)
+      || imagen || quitarImagen;
     if (enviando || (changed && !window.confirm('Tienes cambios sin guardar. ¿Quieres salir y descartarlos?'))) {
       event.preventDefault();
     }
   }
 
+  function cambiarCheckpoint(index, name, value) {
+    setCheckpoints(previous => previous.map((checkpoint, checkpointIndex) => (
+      checkpointIndex === index ? { ...checkpoint, [name]: value } : checkpoint
+    )));
+    setCheckpointErrors(previous => previous.map((errors, checkpointIndex) => (
+      checkpointIndex === index ? { ...errors, [name]: '' } : errors
+    )));
+  }
+
+  function agregarCheckpoint() {
+    setCheckpoints(previous => [...previous, checkpointVacio()]);
+    setCheckpointErrors(previous => [...previous, {}]);
+  }
+
+  function quitarCheckpoint(index) {
+    setCheckpoints(previous => previous.filter((_, checkpointIndex) => checkpointIndex !== index));
+    setCheckpointErrors(previous => previous.filter((_, checkpointIndex) => checkpointIndex !== index));
+  }
+
   async function enviar(event) {
     event.preventDefault();
     const nuevosErrores = Object.fromEntries(campos.map(([name]) => [name, validar(name, form[name])]));
+    const nuevosErroresCheckpoint = checkpoints.map(checkpoint => (
+      validarCheckpoint(checkpoint, form.meta_financiera)
+    ));
     setErrors(nuevosErrores);
+    setCheckpointErrors(nuevosErroresCheckpoint);
     setSubmitError('');
-    if (Object.values(nuevosErrores).some(Boolean)) {
+    if (Object.values(nuevosErrores).some(Boolean)
+      || nuevosErroresCheckpoint.some(error => Object.values(error).some(Boolean))) {
       const first = campos.find(([name]) => nuevosErrores[name]);
-      document.getElementById(`campania-${first[0]}`)?.focus();
+      if (first) document.getElementById(`campania-${first[0]}`)?.focus();
       return;
     }
 
     const body = new FormData();
     for (const [name, value] of Object.entries(form)) body.append(name, value.trim());
+    body.append('checkpoints', JSON.stringify(checkpoints.map(({ titulo, descripcion, monto_objetivo }) => ({
+      titulo: titulo.trim(),
+      descripcion: descripcion.trim(),
+      monto_objetivo: monto_objetivo.trim(),
+    }))));
     if (imagen) body.append('imagenes', imagen);
     if (editar && quitarImagen) body.append('quitar_imagen', 'true');
     setEnviando(true);
@@ -98,11 +141,16 @@ export default function CreateCampaign({ editar = false }) {
       });
     } catch (error) {
       if (error.status === 400) {
+        const formatError = value => {
+          if (Array.isArray(value)) return value.map(formatError).join(' ');
+          if (value && typeof value === 'object') return Object.values(value).map(formatError).join(' ');
+          return String(value);
+        };
         const details = Object.fromEntries(Object.entries(error.details).map(
-          ([name, value]) => [name, Array.isArray(value) ? value.join(' ') : String(value)]
+          ([name, value]) => [name, formatError(value)]
         ));
         setErrors(details);
-        setSubmitError(details.non_field_errors || 'Revisa los campos indicados.');
+        setSubmitError(details.checkpoints || details.non_field_errors || 'Revisa los campos indicados.');
       } else {
         setSubmitError(error.status === 401 ? 'Tu sesión expiró. Vuelve a iniciar sesión.' : error.message);
       }
@@ -146,6 +194,51 @@ export default function CreateCampaign({ editar = false }) {
               </div>
             );
           })}
+          <section className="checkpoint-editor" aria-labelledby="checkpoints-title">
+            <div className="checkpoint-editor-header">
+              <div>
+                <h2 id="checkpoints-title">Hitos y metas graduales</h2>
+                <p className="field-help">Define avances financiables dentro de la meta global. Se ordenarán por monto.</p>
+              </div>
+              <button type="button" className="btn-secondary" onClick={agregarCheckpoint} disabled={enviando}>
+                Agregar checkpoint
+              </button>
+            </div>
+            {checkpoints.length === 0 && <p className="checkpoint-empty">Aún no has agregado checkpoints.</p>}
+            {checkpoints.map((checkpoint, index) => (
+              <div className="checkpoint-form" key={`checkpoint-${index}`}>
+                <div className="checkpoint-form-header">
+                  <h3>Checkpoint {index + 1}</h3>
+                  <button type="button" className="checkpoint-remove" onClick={() => quitarCheckpoint(index)} disabled={enviando}>
+                    Quitar
+                  </button>
+                </div>
+                <div className="field">
+                  <label htmlFor={`checkpoint-${index}-titulo`}>Título del checkpoint</label>
+                  <input id={`checkpoint-${index}-titulo`} value={checkpoint.titulo} maxLength="120"
+                    disabled={enviando} aria-invalid={Boolean(checkpointErrors[index]?.titulo)}
+                    onChange={event => cambiarCheckpoint(index, 'titulo', event.target.value)} />
+                  {checkpointErrors[index]?.titulo && <p className="error-msg" role="alert">{checkpointErrors[index].titulo}</p>}
+                </div>
+                <div className="field">
+                  <label htmlFor={`checkpoint-${index}-descripcion`}>Descripción del checkpoint</label>
+                  <textarea id={`checkpoint-${index}-descripcion`} value={checkpoint.descripcion} rows={3}
+                    disabled={enviando} aria-invalid={Boolean(checkpointErrors[index]?.descripcion)}
+                    onChange={event => cambiarCheckpoint(index, 'descripcion', event.target.value)} />
+                  {checkpointErrors[index]?.descripcion && <p className="error-msg" role="alert">{checkpointErrors[index].descripcion}</p>}
+                </div>
+                <div className="field">
+                  <label htmlFor={`checkpoint-${index}-monto`}>Monto objetivo</label>
+                  <input id={`checkpoint-${index}-monto`} type="number" min="0.01" step="0.01"
+                    max={form.meta_financiera || undefined} value={checkpoint.monto_objetivo} disabled={enviando}
+                    aria-invalid={Boolean(checkpointErrors[index]?.monto_objetivo)}
+                    onChange={event => cambiarCheckpoint(index, 'monto_objetivo', event.target.value)} />
+                  <p className="field-help">Debe ser mayor que cero y no superar la meta global.</p>
+                  {checkpointErrors[index]?.monto_objetivo && <p className="error-msg" role="alert">{checkpointErrors[index].monto_objetivo}</p>}
+                </div>
+              </div>
+            ))}
+          </section>
           <div className="field">
             <label htmlFor="campania-imagen">Imagen (opcional)</label>
             <input id="campania-imagen" type="file" accept="image/*" disabled={enviando}

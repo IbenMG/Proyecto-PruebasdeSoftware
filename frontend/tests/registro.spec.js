@@ -123,19 +123,39 @@ test('registro, duplicados e inicio de sesión', async ({ page }) => {
   )).toBeVisible();
 
   await page.getByRole('button', { name: 'Ya tengo una cuenta' }).click();
+  await expect(page).toHaveURL(/\/$/);
+  await expect(
+    page.getByRole('heading', { name: 'Iniciar sesión' })
+  ).toBeVisible();
 
   // La contraseña incorrecta debe impedir el acceso.
-  await page.getByLabel('Correo electrónico', { exact: true }).fill(datos.email);
-  await page.getByLabel('Contraseña', { exact: true }).fill('ClaveIncorrecta');
-  await page.getByRole('button', { name: 'Iniciar Sesión', exact: true }).click();
+  const email = page.getByLabel('Correo electrónico', { exact: true });
+  const password = page.getByLabel('Contraseña', { exact: true });
+  const botonLogin = page.getByRole('button', {
+    name: 'Iniciar Sesión',
+    exact: true,
+  });
 
+  await expect(email).toBeEnabled();
+  await expect(password).toBeEnabled();
+  await email.fill(datos.email);
+  await password.fill('ClaveIncorrecta');
+
+  const respuestaLoginIncorrecto = page.waitForResponse(
+    (response) =>
+      new URL(response.url()).pathname === '/api/token/' &&
+      response.request().method() === 'POST'
+  );
+  await botonLogin.click();
+
+  expect((await respuestaLoginIncorrecto).status()).toBe(401);
   await expect(page.getByRole('alert')).toHaveText(
     'Correo o contraseña incorrectos'
   );
 
   // La contraseña correcta debe permitirlo.
-  await page.getByLabel('Contraseña', { exact: true }).fill(datos.password);
-  await page.getByRole('button', { name: 'Iniciar Sesión', exact: true }).click();
+  await password.fill(datos.password);
+  await botonLogin.click();
 
   await expect(
     page.getByRole('heading', { name: 'El próximo gran proyecto puede empezar contigo.' })

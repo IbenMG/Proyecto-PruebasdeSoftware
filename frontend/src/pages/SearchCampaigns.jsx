@@ -5,7 +5,7 @@ import './campaigns.css';
 export default function SearchCampaigns() {
   return (
     <div className="search-campaigns">
-      <Link to="/main">Volver al panel principal</Link>
+      <Link to="/main" className="back-link">Volver al panel principal</Link>
       <h1>Buscar campañas</h1>
       <CampaignSearch />
     </div>
