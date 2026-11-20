@@ -8,7 +8,6 @@ dist/
 .env
 /db.sqlite3
 
-
 # Reportes de Playwright
 playwright-report/
 test-results/
