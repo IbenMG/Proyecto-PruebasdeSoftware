@@ -94,6 +94,38 @@ pipeline {
                 '''
             }
         }
+
+        stage('Selenium: E2E tests') {
+            steps {
+                sh '''
+                    set -eu
+                    # Start frontend dev server for Selenium tests
+                    cd frontend
+                    npm run dev -- --host 127.0.0.1 > reports/frontend-selenium.log 2>&1 &
+                    echo $! > reports/frontend-selenium.pid
+                    # Wait for frontend to be ready
+                    for attempt in $(seq 1 30); do
+                        if curl --fail --silent http://127.0.0.1:5173 > /dev/null; then
+                            break
+                        fi
+                        sleep 2
+                    done
+                    if ! curl --fail --silent http://127.0.0.1:5173 > /dev/null; then
+                        cat reports/frontend-selenium.log
+                        exit 1
+                    fi
+                    cd ..
+
+                    # Install selenium and run tests
+                    . .venv-ci/bin/activate
+                    pip install selenium
+                    export CI='true'
+                    export TEST_API_URL='http://127.0.0.1:8000/api'
+                    export BASE_URL='http://127.0.0.1:5173'
+                    python -m pytest selenium_tests --junitxml=reports/selenium.xml -q
+                '''
+            }
+        }
     }
 
     post {
