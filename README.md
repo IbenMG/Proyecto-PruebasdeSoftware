@@ -44,8 +44,5 @@ Las pruebas generan datos: usar solo una base dedicada a pruebas. Para Playwrigh
 - [Repositorio](https://github.com/IbenMG/Proyecto-PruebasdeSoftware), [Wiki](https://github.com/IbenMG/Proyecto-PruebasdeSoftware/wiki) y [releases](https://github.com/IbenMG/Proyecto-PruebasdeSoftware/releases).
 - Video Entrega 1: [ver video](https://usmcl-my.sharepoint.com/:v:/g/personal/iben_munoz_usm_cl/IQB4rWI5bBhDS6ayKutz5tzoAXQ0Ta8v61SwzMZj1dAdJJo?nav=eyJyZWZlcnJhbEluZm8iOnsicmVmZXJyYWxBcHAiOiJPbmVEcml2ZUZvckJ1c2luZXNzIiwicmVmZXJyYWxBcFBsYXRmb3JtIjoiV2ViIiwicmVmZXJyYWxWaWV3IjoiTXlGaWxlc0xpbmtDb3B5In19&e=TPSdtb).
 - Video Entrega 2: [ver video](https://drive.google.com/file/d/1DhhoYorLBMYnuGxOsrG8Hvt5eUWF34OX/view?usp=sharing).
-- **Video Entrega 3: pendiente**; agregar aquí el enlace real cuando esté disponible.
+- Video Entrega 3: [ver video](https://usmcl-my.sharepoint.com/:v:/g/personal/iben_munoz_usm_cl/IQCsA74oQ_WnTqkhFPBY0xW8AdaGesMtBvcS29lMEUTklSg?nav=eyJyZWZlcnJhbEluZm8iOnsicmVmZXJyYWxBcHAiOiJPbmVEcml2ZUZvckJ1c2luZXNzIiwicmVmZXJyYWxBcHBQbGF0Zm9ybSI6IldlYiIsInJlZmVycmFsTW9kZSI6InZpZXciLCJyZWZlcnJhbFZpZXciOiJNeUZpbGVzTGlua0NvcHkifX0&e=2HMDB1)
 
-## Equipo y flujo de trabajo
-
-Benjamín Araos, Dan Gonzalez, Jaime Donoso e Iben Muñoz. Se emplean ramas y pull requests siguiendo GitFlow; la pauta solicita mantener Kanban con estimaciones. El estado y las capturas del tablero deben verificarse y documentarse con evidencia real.

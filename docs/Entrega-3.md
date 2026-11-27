@@ -33,6 +33,7 @@ source .venv/bin/activate
 python -m pip install -r requirements.txt
 export DB_ENGINE=django.db.backends.sqlite3
 export DB_NAME="$PWD/selenium-local.sqlite3"
+export DJANGO_SECRET_KEY="clave-local-solo-para-pruebas"
 python manage.py migrate --noinput
 python manage.py runserver 127.0.0.1:8001
 ```
@@ -66,11 +67,11 @@ La etapa `Selenium: E2E tests` de [Jenkinsfile](../Jenkinsfile) usa `HEADLESS=1`
 
 El agente requiere Linux/Unix, Python con venv, Node/npm, curl, Chrome y un ChromeDriver compatible o Selenium Manager con acceso de descarga, además de las dependencias de sistema del navegador y los plugins Jenkins. Playwright necesita su propio Chromium. Ver [CI/CD](CI-CD.md) para etapas, artefactos y requisitos completos.
 
-El webhook de GitHub debe apuntar al Jenkins accesible por HTTPS (`/github-webhook/`) y el job debe configurarse para escuchar las ramas y eventos deseados. Un push o PR solo dispara el job si la configuración externa lo admite. Revisar Recent Deliveries y el build asociado; **configuración y ejecución automática pendientes de verificar**.
+El webhook de GitHub debe apuntar al Jenkins accesible por HTTPS (`/github-webhook/`) y el job debe configurarse para escuchar las ramas y eventos deseados. La captura compartida muestra un webhook activo para push, con JSON y verificación SSL. Esto no demuestra que la entrega haya llegado ni que haya iniciado un build: queda pendiente verificar Recent Deliveries y el build asociado.
 
 ## Slack
 
-El pipeline intenta notificar éxito, fallo o inestabilidad mediante el plugin Slack Notification. Se deben configurar credenciales y canal en Jenkins; los errores de envío se registran sin alterar el resultado. **Pendiente:** conservar pruebas reales de notificaciones de éxito y fallo.
+El pipeline intenta notificar éxito, fallo o inestabilidad mediante el plugin Slack Notification. Se deben configurar credenciales y canal en Jenkins; los errores de envío se registran sin alterar el resultado. La captura compartida muestra mensajes de éxito del job `CrowdStarter-CI` #20 y fallo del #21; no demuestra qué pruebas ejecutaron esos builds.
 
 ## Problemas y soluciones
 
@@ -83,13 +84,25 @@ El pipeline intenta notificar éxito, fallo o inestabilidad mediante el plugin S
 | Slack no recibe mensajes | Revisar plugin, credenciales y canal; comprobar el log y probar la integración. |
 | Los tests dejan datos | Usar una SQLite dedicada y recrearla solo cuando corresponda; no usar datos de producción. |
 
-## Evidencias pendientes
+## Evidencias compartidas
 
-- [ ] Ejecutar la suite y registrar número de casos y resultado real.
-- [ ] Enlace a build Jenkins real, log completo y JUnit de Selenium.
-- [ ] Evidencia de un fallo controlado, captura/HTML si se generan y resultado del build.
-- [ ] Evidencia de push/PR, entrega del webhook y build asociado.
-- [ ] Capturas reales de Slack para éxito y fallo, sin credenciales.
-- [ ] Enlace al video real de Entrega 3, con alcance, herramienta, ejecución, pipeline y problemas/soluciones.
-- [ ] Publicar o enlazar esta documentación en una página Wiki titulada «Entrega 3», según la pauta.
-- [ ] Verificar y documentar el tablero Kanban, tareas priorizadas y estimaciones, sin asumir su estado.
+- **Selenium local:** en la ejecución local compartida se ve el resumen `26 passed in 156.22s`; la captura muestra el resultado, no el comando ejecutado.
+
+  ![Resultado de pruebas Selenium locales](../capturas/tests_selenium.png)
+
+- **Slack:** mensajes `SUCCESS` y `FAILURE` para `CrowdStarter-CI` #20 y #21.
+
+  ![Notificaciones de Jenkins en Slack](../capturas/slack.png)
+
+- **Webhook:** configuración activa para push con JSON y SSL; no se ve una entrega recibida.
+
+  ![Configuración del webhook en GitHub](../capturas/webhook.png)
+
+- **Jenkins:** el reporte del build `CrowdStarter-main` #5 muestra 102 pruebas aprobadas de API y Playwright; no demuestra ejecución de Selenium.
+
+  ![Reporte de pruebas en Jenkins](../capturas/jenkins.png)
+
+## Video de Entrega 3
+
+**[Enlace del video:](https://drive.google.com/file/d/1DhhoYorLBMYnuGxOsrG8Hvt5eUWF34OX/view)** 
+
