@@ -98,7 +98,13 @@ El pipeline intenta notificar éxito, fallo o inestabilidad mediante el plugin S
 
   ![Configuración del webhook en GitHub](../capturas/webhook.png)
 
-- **Jenkins:** fragmento de log con pruebas unitarias del frontend; no corresponde a la etapa Selenium.
+- **Jenkins:** el reporte del build `CrowdStarter-main` #5 muestra 102 pruebas aprobadas de API y Playwright; no demuestra ejecución de Selenium.
+
+  ![Reporte de pruebas en Jenkins](../capturas/jenkins.png)
+
+## Video de Entrega 3
+
+**Aquí pon el enlace del video:** pendiente de agregar.
 
 ## Evidencias pendientes
 
