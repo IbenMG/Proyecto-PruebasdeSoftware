@@ -87,18 +87,24 @@ El pipeline intenta notificar éxito, fallo o inestabilidad mediante el plugin S
 ## Evidencias compartidas
 
 - **Selenium local:** en la ejecución local compartida se ve el resumen `26 passed in 156.22s`; la captura muestra el resultado, no el comando ejecutado.
-- **Slack:** mensajes `SUCCESS` y `FAILURE` para `CrowdStarter-CI` #20 y #21.
-- **Webhook:** configuración activa para push con JSON y SSL; no se ve una entrega recibida.
-- **Jenkins:** fragmento de log con pruebas unitarias del frontend; no corresponde a la etapa Selenium.
 
-Las capturas fueron compartidas en la conversación, pero aún deben guardarse como archivos en el repositorio para poder adjuntarlas aquí.
+  ![Resultado de pruebas Selenium locales](../capturas/tests_selenium.png)
+
+- **Slack:** mensajes `SUCCESS` y `FAILURE` para `CrowdStarter-CI` #20 y #21.
+
+  ![Notificaciones de Jenkins en Slack](../capturas/slack.png)
+
+- **Webhook:** configuración activa para push con JSON y SSL; no se ve una entrega recibida.
+
+  ![Configuración del webhook en GitHub](../capturas/webhook.png)
+
+- **Jenkins:** fragmento de log con pruebas unitarias del frontend; no corresponde a la etapa Selenium.
 
 ## Evidencias pendientes
 
 - [ ] Enlace a build Jenkins real, log completo y JUnit de Selenium.
 - [ ] Evidencia de un fallo controlado, captura/HTML si se generan y resultado del build.
 - [ ] Evidencia de push/PR, entrega del webhook y build asociado.
-- [ ] Guardar y adjuntar al repositorio las capturas compartidas, sin credenciales.
 - [ ] Enlace al video real de Entrega 3, con alcance, herramienta, ejecución, pipeline y problemas/soluciones.
 - [ ] Publicar o enlazar esta documentación en una página Wiki titulada «Entrega 3», según la pauta.
 - [ ] Verificar y documentar el tablero Kanban, tareas priorizadas y estimaciones, sin asumir su estado.
