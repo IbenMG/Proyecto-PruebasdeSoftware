@@ -7,6 +7,8 @@ node_modules/
 dist/
 .env
 /db.sqlite3
+/e2e-local.sqlite3
+/selenium-local.sqlite3
 
 # Reportes de Playwright
 playwright-report/
