@@ -104,13 +104,5 @@ El pipeline intenta notificar éxito, fallo o inestabilidad mediante el plugin S
 
 ## Video de Entrega 3
 
-**Aquí pon el enlace del video:** pendiente de agregar.
+**[Enlace del video:](https://drive.google.com/file/d/1DhhoYorLBMYnuGxOsrG8Hvt5eUWF34OX/view)** 
 
-## Evidencias pendientes
-
-- [ ] Enlace a build Jenkins real, log completo y JUnit de Selenium.
-- [ ] Evidencia de un fallo controlado, captura/HTML si se generan y resultado del build.
-- [ ] Evidencia de push/PR, entrega del webhook y build asociado.
-- [ ] Enlace al video real de Entrega 3, con alcance, herramienta, ejecución, pipeline y problemas/soluciones.
-- [ ] Publicar o enlazar esta documentación en una página Wiki titulada «Entrega 3», según la pauta.
-- [ ] Verificar y documentar el tablero Kanban, tareas priorizadas y estimaciones, sin asumir su estado.
